@@ -762,10 +762,10 @@ export default function Home() {
                     {ttsError
                       ? ttsError
                       : ttsLoading
-                        ? "Generuojamas ElevenLabs garsas…"
+                        ? "Generuojamas garsas…"
                         : story.item.fullText?.trim()
-                          ? "Groja pilną straipsnio tekstą (ElevenLabs)"
-                          : "Groja santrauką (ElevenLabs) — pilno teksto nėra"}
+                          ? "Groja pilną straipsnio tekstą"
+                          : "Groja santrauką — pilno teksto nėra"}
                   </p>
                 </article>
               ) : (
