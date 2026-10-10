@@ -131,6 +131,13 @@ main,
   place-items: center;
 }
 
+.route-number.is-placeholder {
+  color: #8a948e;
+  background: #e8e4d8;
+  font-size: 18px;
+  letter-spacing: 0.04em;
+}
+
 .route-label {
   margin: 0 0 3px;
   color: var(--muted);

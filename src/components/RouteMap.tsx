@@ -398,7 +398,7 @@ export default function RouteMap({
         {stage === "pins" && `Naujienos · ${pins.length}`}
         {stage === "route" && `Maršrutas ${routeLabel}`}
         {stage === "filtered" &&
-          `Variklis · ${pins.filter((p) => p.active).length} atrinkta`}
+          `Atrinkta · ${pins.filter((p) => p.active).length}`}
         <span className="route-map-attrib">© Esri</span>
       </div>
 

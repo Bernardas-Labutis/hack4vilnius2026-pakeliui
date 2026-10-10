@@ -35,7 +35,7 @@ const STAGE_LABELS: Record<MapStage, string> = {
   idle: "Žemėlapis",
   pins: "Naujienų taškai",
   route: "1G maršrutas",
-  filtered: "Variklio atranka",
+  filtered: "Srauto atranka",
 };
 
 function Icon({
@@ -139,7 +139,7 @@ function CandidateRow({
 }
 
 export default function Home() {
-  const [routeId, setRouteId] = useState(ROUTES[0].id);
+  const [routeId, setRouteId] = useState("modern");
   const [durationMinutes, setDurationMinutes] = useState<number>(10);
   const [preference, setPreference] = useState<PreferenceMode>("balanced");
   const [playing, setPlaying] = useState(false);
@@ -364,11 +364,19 @@ export default function Home() {
         </header>
 
         <div className="route-summary">
-          <div className="route-number">{route.number}</div>
+          {mapStage === "route" || mapStage === "filtered" ? (
+            <div className="route-number">{route.number}</div>
+          ) : (
+            <div className="route-number is-placeholder" aria-hidden="true">
+              ··
+            </div>
+          )}
           <div>
             <p className="route-label">Jūsų kelionė</p>
             <h1>
-              {route.from} → {route.to}
+              {mapStage === "route" || mapStage === "filtered"
+                ? `${route.from} → ${route.to}`
+                : "Vilnius"}
             </h1>
           </div>
           <div className="trip-time">
@@ -407,7 +415,7 @@ export default function Home() {
             type="button"
           >
             <span className="sheet-handle-bar" />
-            {sheetOpen ? "Suskleisti" : "Išskleisti grotuvą / etapus"}
+            {sheetOpen ? "Suskleisti" : "Išskleisti"}
           </button>
 
           <div className="map-stage-bar">
@@ -441,7 +449,7 @@ export default function Home() {
                 <div>
                   <span className="live-dot" />
                   {mapStage === "filtered"
-                    ? "Variklio srautas"
+                    ? "Atrinktas srautas"
                     : "Sugeneruotas srautas"}
                 </div>
                 <span>
@@ -543,12 +551,12 @@ export default function Home() {
 
       <aside className="engine-panel">
         <div className="engine-intro">
-          <p className="engine-kicker">Pakeliui srauto variklis</p>
+          <p className="engine-kicker">Pakeliui srauto atranka</p>
           <h2>Kaip sudarėme jūsų srautą</h2>
           <p>
             Vienas bendras turinio rinkinys. Pakeiskite maršrutą, trukmę ar
-            prioritetą — reitingavimo variklis iš naujo sudaro grojaraštį ir
-            paaiškina kiekvieną sprendimą.
+            prioritetą — reitingavimas iš naujo sudaro grojaraštį ir paaiškina
+            kiekvieną sprendimą.
           </p>
         </div>
 
