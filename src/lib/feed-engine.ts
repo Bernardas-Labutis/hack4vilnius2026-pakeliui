@@ -233,10 +233,9 @@ export function storyTextLength(item: CandidateItem): number {
   return item.summary.trim().length;
 }
 
-export function formatTextLength(chars: number) {
-  const n = Math.max(0, Math.floor(chars || 0));
-  if (n >= 1000) return `${(n / 1000).toFixed(n >= 10000 ? 0 : 1)}k simb.`;
-  return `${n} simb.`;
+/** Rough listen time from text length (same rate as the trip text budget). */
+export function estimateNarrationSec(item: CandidateItem): number {
+  return Math.max(1, Math.round(storyTextLength(item) / CHARS_PER_SEC));
 }
 
 export function buildFeed(input: BuildFeedInput): FeedResult {

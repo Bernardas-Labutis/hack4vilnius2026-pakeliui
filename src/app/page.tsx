@@ -16,10 +16,9 @@ import {
 } from "@/data/routes";
 import {
   buildFeed,
+  estimateNarrationSec,
   formatDuration,
-  formatTextLength,
   rejectionLabel,
-  storyTextLength,
   type ScoredCandidate,
 } from "@/lib/feed-engine";
 import {
@@ -119,7 +118,7 @@ function CandidateRow({
               {entry.item.sourceName}
               {entry.item.curated ? " · kuruota" : ""} ·{" "}
               {CATEGORY_LABELS[entry.item.category]} ·{" "}
-              {formatTextLength(storyTextLength(entry.item))}
+              {formatDuration(estimateNarrationSec(entry.item))}
             </p>
           </div>
           <strong className="candidate-total">{entry.scores.total}</strong>
@@ -800,10 +799,9 @@ export default function Home() {
                     </div>
                   ) : (
                     <div className="story-scroll">
-                      <h2>Šiam biudžetui istorijų nerasta</h2>
+                      <h2>Su šiais filtrais neradome istorijų</h2>
                       <p className="story-copy">
-                        Pabandykite ilgesnę kelionės trukmę, kitą prioritetą ar
-                        temą.
+                        Pabandykite ilgesnę trukmę, kitą prioritetą ar temą.
                       </p>
                     </div>
                   )}
@@ -1056,11 +1054,11 @@ export default function Home() {
             <strong>{rejectedForPanel.length}</strong>
           </div>
           <div>
-            <span>Teksto apimtis</span>
+            <span>Apytikslė trukmė</span>
             <strong>
-              {formatTextLength(
+              {formatDuration(
                 playerQueue.reduce(
-                  (sum, entry) => sum + storyTextLength(entry.item),
+                  (sum, entry) => sum + estimateNarrationSec(entry.item),
                   0,
                 ),
               )}
