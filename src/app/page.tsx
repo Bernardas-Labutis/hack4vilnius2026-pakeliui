@@ -23,6 +23,11 @@ import {
   parseGeneratedCandidates,
   requestGroqStories,
 } from "@/lib/groq";
+import {
+  fetchNarrationAudio,
+  narrationText,
+  ttsErrorMessage,
+} from "@/lib/tts";
 
 const RouteMap = dynamic(() => import("@/components/RouteMap"), {
   ssr: false,
@@ -169,6 +174,11 @@ export default function Home() {
     y: number;
     active: boolean;
   } | null>(null);
+  const [ttsLoading, setTtsLoading] = useState(false);
+  const [ttsError, setTtsError] = useState<string | null>(null);
+  const [audioDurationSec, setAudioDurationSec] = useState(0);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const audioUrlsRef = useRef<Map<string, string>>(new Map());
 
   const route = ROUTES.find((r) => r.id === routeId) ?? ROUTES[0];
   const candidates = useMemo(
@@ -224,29 +234,99 @@ export default function Home() {
   );
 
   useEffect(() => {
-    if (!playing || !story) return;
+    return () => {
+      for (const url of audioUrlsRef.current.values()) {
+        URL.revokeObjectURL(url);
+      }
+      audioUrlsRef.current.clear();
+    };
+  }, []);
 
-    const timer = window.setInterval(() => {
-      setProgress((current) => {
-        if (current >= 100) {
-          if (safeIndex < stories.length - 1) {
-            setStoryIndex(safeIndex + 1);
-            return 0;
-          }
-          setPlaying(false);
-          return 100;
+  useEffect(() => {
+    const el = audioRef.current;
+    if (!el) return;
+    const audio: HTMLAudioElement = el;
+
+    function onTimeUpdate() {
+      if (!audio.duration || !Number.isFinite(audio.duration)) return;
+      setAudioDurationSec(audio.duration);
+      setProgress((audio.currentTime / audio.duration) * 100);
+    }
+
+    function onEnded() {
+      if (safeIndex < stories.length - 1) {
+        setStoryIndex(safeIndex + 1);
+        setProgress(0);
+        return;
+      }
+      setPlaying(false);
+      setProgress(100);
+    }
+
+    audio.addEventListener("timeupdate", onTimeUpdate);
+    audio.addEventListener("loadedmetadata", onTimeUpdate);
+    audio.addEventListener("ended", onEnded);
+    return () => {
+      audio.removeEventListener("timeupdate", onTimeUpdate);
+      audio.removeEventListener("loadedmetadata", onTimeUpdate);
+      audio.removeEventListener("ended", onEnded);
+    };
+  }, [safeIndex, stories.length]);
+
+  useEffect(() => {
+    const el = audioRef.current;
+    if (!el) return;
+    const audio: HTMLAudioElement = el;
+
+    const item = story?.item;
+    if (!playing || !item) {
+      audio.pause();
+      return;
+    }
+
+    let cancelled = false;
+
+    async function syncPlayback() {
+      setTtsLoading(true);
+      setTtsError(null);
+      try {
+        let url = audioUrlsRef.current.get(item.id);
+        if (!url) {
+          const blob = await fetchNarrationAudio(narrationText(item));
+          if (cancelled) return;
+          url = URL.createObjectURL(blob);
+          audioUrlsRef.current.set(item.id, url);
         }
-        return current + 15 / story.item.durationSec;
-      });
-    }, 150);
+        if (cancelled) return;
 
-    return () => window.clearInterval(timer);
-  }, [playing, story, safeIndex, stories.length]);
+        if (audio.src !== url) {
+          audio.src = url;
+          audio.load();
+          setProgress(0);
+        }
+        await audio.play();
+      } catch (caught) {
+        if (cancelled) return;
+        setPlaying(false);
+        setTtsError(ttsErrorMessage(caught));
+      } finally {
+        if (!cancelled) setTtsLoading(false);
+      }
+    }
+
+    void syncPlayback();
+    return () => {
+      cancelled = true;
+    };
+  }, [playing, story?.item]);
 
   function resetPlayback() {
+    audioRef.current?.pause();
     setStoryIndex(0);
     setProgress(0);
     setPlaying(false);
+    setTtsError(null);
+    setAudioDurationSec(0);
     setExpandedId(undefined);
   }
 
@@ -267,17 +347,23 @@ export default function Home() {
 
   function prevStory() {
     if (stories.length === 0) return;
+    audioRef.current?.pause();
     setStoryIndex(
       (current) => (current - 1 + stories.length) % stories.length,
     );
     setProgress(0);
+    setAudioDurationSec(0);
+    setTtsError(null);
     setPlaying(true);
   }
 
   function nextStory() {
     if (stories.length === 0) return;
+    audioRef.current?.pause();
     setStoryIndex((current) => (current + 1) % stories.length);
     setProgress(0);
+    setAudioDurationSec(0);
+    setTtsError(null);
     setPlaying(true);
   }
 
@@ -328,12 +414,26 @@ export default function Home() {
   }
 
   function togglePlayback() {
+    if (!story || ttsLoading) return;
     if (progress >= 100) {
       setProgress(0);
       setPlaying(true);
       return;
     }
     setPlaying((current) => !current);
+  }
+
+  function seekPlayback(event: React.MouseEvent<HTMLButtonElement>) {
+    const audio = audioRef.current;
+    const bounds = event.currentTarget.getBoundingClientRect();
+    const ratio = Math.min(
+      1,
+      Math.max(0, (event.clientX - bounds.left) / bounds.width),
+    );
+    setProgress(ratio * 100);
+    if (audio && audio.duration && Number.isFinite(audio.duration)) {
+      audio.currentTime = ratio * audio.duration;
+    }
   }
 
   function setMapStageStep(next: MapStage) {
@@ -409,9 +509,9 @@ export default function Home() {
     setMapStageStep(next);
   }
 
-  const elapsedSec = story
-    ? Math.floor((progress / 100) * story.item.durationSec)
-    : 0;
+  const totalSec =
+    audioDurationSec > 0 ? audioDurationSec : (story?.item.durationSec ?? 0);
+  const elapsedSec = Math.floor((progress / 100) * totalSec);
 
   return (
     <main className="demo-layout">
@@ -572,6 +672,7 @@ export default function Home() {
                     </a>
                   </p>
 
+                  <audio ref={audioRef} preload="none" />
                   <div className="player">
                     <button
                       aria-label="Ankstesnė istorija"
@@ -589,12 +690,30 @@ export default function Home() {
                       </Icon>
                     </button>
                     <button
-                      aria-label={playing ? "Pristabdyti garsą" : "Groti garsą"}
+                      aria-label={
+                        ttsLoading
+                          ? "Kraunamas garsas"
+                          : playing
+                            ? "Pristabdyti garsą"
+                            : "Groti garsą"
+                      }
                       className="play-button"
+                      disabled={ttsLoading}
                       onClick={togglePlayback}
                       type="button"
                     >
-                      {playing ? (
+                      {ttsLoading ? (
+                        <Icon size={24}>
+                          <circle
+                            cx="12"
+                            cy="12"
+                            r="8"
+                            stroke="currentColor"
+                            strokeDasharray="36 20"
+                            strokeWidth="2.5"
+                          />
+                        </Icon>
+                      ) : playing ? (
                         <Icon size={24}>
                           <path
                             d="M9 7v10M15 7v10"
@@ -613,22 +732,14 @@ export default function Home() {
                       <button
                         aria-label="Peršokti garsą"
                         className="progress-track"
-                        onClick={(event) => {
-                          const bounds =
-                            event.currentTarget.getBoundingClientRect();
-                          setProgress(
-                            ((event.clientX - bounds.left) / bounds.width) *
-                              100,
-                          );
-                          setPlaying(true);
-                        }}
+                        onClick={seekPlayback}
                         type="button"
                       >
                         <span style={{ width: `${progress}%` }} />
                       </button>
                       <div className="time-row">
                         <span>{formatDuration(elapsedSec)}</span>
-                        <span>{formatDuration(story.item.durationSec)}</span>
+                        <span>{formatDuration(totalSec)}</span>
                       </div>
                     </div>
                     <button
@@ -648,7 +759,13 @@ export default function Home() {
                     </button>
                   </div>
                   <p className="demo-audio-note">
-                    Demo peržiūra — įrašytas garsas dar nepridėtas
+                    {ttsError
+                      ? ttsError
+                      : ttsLoading
+                        ? "Generuojamas ElevenLabs garsas…"
+                        : story.item.fullText?.trim()
+                          ? "Groja pilną straipsnio tekstą (ElevenLabs)"
+                          : "Groja santrauką (ElevenLabs) — pilno teksto nėra"}
                   </p>
                 </article>
               ) : (
