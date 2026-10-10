@@ -14,32 +14,13 @@ export type RouteProfile = {
 
 export const ROUTES: RouteProfile[] = [
   {
-    id: "old-town",
-    number: "2G",
-    from: "Santariškės",
-    to: "Stotis",
-    label: "Senamiestis ir kultūra",
-    description: "Eina palei Nerį, Lukiškes ir Senamiesčio kultūros koridorių.",
-    tripMinutes: 24,
-    corridor: [
-      "neris",
-      "zaliasis-tiltas",
-      "lukiskes",
-      "old-town",
-      "cathedral",
-      "gediminas",
-      "stotis",
-      "vilnius-centre",
-    ],
-  },
-  {
-    id: "modern",
+    id: "1g",
     number: "1G",
     from: "Stotis",
     to: "Santariškės",
-    label: "1G · Stotis–Kalvarijų g.–Santariškės",
+    label: "Stotis–Kalvarijų g.–Santariškės",
     description:
-      "Tikras JUDU 1G koridorius: Stotis, Kalvarijų g., Šnipiškės, Santariškės.",
+      "Eina per Stotį, Kalvarijų g., Šnipiškes ir Santariškes.",
     tripMinutes: 22,
     corridor: [
       "snipiskes",
@@ -50,6 +31,25 @@ export const ROUTES: RouteProfile[] = [
       "stotis",
       "new-town",
       "santariskes",
+    ],
+  },
+  {
+    id: "2g",
+    number: "2G",
+    from: "Santariškės",
+    to: "Stotis",
+    label: "Laisvės pr. koridorius",
+    description:
+      "Eina per Pašilaičius, Justiniškes, Šeškinę ir Karoliniškes Laisvės prospektu.",
+    tripMinutes: 24,
+    corridor: [
+      "pasilaiciai",
+      "justiniskes",
+      "seskine",
+      "karoliniskes",
+      "laisves-pr",
+      "santariskes",
+      "stotis",
     ],
   },
 ];

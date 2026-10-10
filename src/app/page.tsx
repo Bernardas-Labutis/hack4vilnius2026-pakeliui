@@ -31,12 +31,18 @@ const RouteMap = dynamic(() => import("@/components/RouteMap"), {
 
 const MAP_STAGES: MapStage[] = ["idle", "pins", "route", "filtered"];
 
-const STAGE_LABELS: Record<MapStage, string> = {
-  idle: "Žemėlapis",
-  pins: "Naujienų taškai",
-  route: "1G maršrutas",
-  filtered: "Srauto atranka",
-};
+function stageLabel(stage: MapStage, routeNumber: string) {
+  switch (stage) {
+    case "idle":
+      return "Žemėlapis";
+    case "pins":
+      return "Naujienų taškai";
+    case "route":
+      return `${routeNumber} maršrutas`;
+    case "filtered":
+      return "Srauto atranka";
+  }
+}
 
 function Icon({
   children,
@@ -139,7 +145,7 @@ function CandidateRow({
 }
 
 export default function Home() {
-  const [routeId, setRouteId] = useState("modern");
+  const [routeId, setRouteId] = useState(ROUTES[0].id);
   const [durationMinutes, setDurationMinutes] = useState<number>(10);
   const [preference, setPreference] = useState<PreferenceMode>("balanced");
   const [playing, setPlaying] = useState(false);
@@ -256,13 +262,6 @@ export default function Home() {
   }
 
   function setMapStageStep(next: MapStage) {
-    if (next === "route" || next === "filtered") {
-      // Jury walkthrough uses 1G corridor for the route overlay story.
-      if (routeId !== "modern") {
-        setRouteId("modern");
-        resetPlayback();
-      }
-    }
     setMapStage(next);
     if (next === "filtered") {
       resetPlayback();
@@ -403,7 +402,7 @@ export default function Home() {
           <RouteMap
             pins={mapPins}
             routeLabel={route.number}
-            routeLine={ROUTE_POLYLINES[route.id] ?? ROUTE_POLYLINES.modern}
+            routeLine={ROUTE_POLYLINES[route.id] ?? ROUTE_POLYLINES["1g"]}
             stage={mapStage}
           />
         </div>
@@ -429,7 +428,7 @@ export default function Home() {
                   onClick={() => setMapStageStep(stage)}
                   type="button"
                 >
-                  {STAGE_LABELS[stage]}
+                  {stageLabel(stage, route.number)}
                 </button>
               ))}
             </div>
@@ -542,7 +541,7 @@ export default function Home() {
             </div>
           ) : (
             <p className="sheet-collapsed-hint">
-              {STAGE_LABELS[mapStage]}
+              {stageLabel(mapStage, route.number)}
               {story ? ` · ${story.item.title}` : ""}
             </p>
           )}
