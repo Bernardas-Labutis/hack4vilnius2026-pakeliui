@@ -4,6 +4,11 @@ A mobile-first Hack4Vilnius 2026 demo: a location-aware audio companion that
 builds a journey-length feed from a shared content pool using an explainable
 ranking engine.
 
+## Authors
+
+This project was done by **Gabriele Ciuladataite**, **Mantas Pimpe**, and
+**Bernardas Labutis**.
+
 The demo is intentionally scoped for reliability:
 
 - Two prepared Vilnius route profiles
