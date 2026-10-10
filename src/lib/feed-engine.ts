@@ -5,6 +5,7 @@ import {
   type ContentCategory,
 } from "@/data/demo-content";
 import type { PreferenceMode, RouteProfile } from "@/data/routes";
+import { storyProgressAlongRoute } from "@/lib/route-progress";
 
 export type RejectionReason =
   | "irrelevant"
@@ -266,6 +267,17 @@ export function buildFeed(input: BuildFeedInput): FeedResult {
     if (selected.length >= maxStories) break;
     if (usedSec >= budgetSec * 0.92) break;
   }
+
+  // Playback follows passenger ride order (from → to), not score rank.
+  selected.sort((a, b) => {
+    const aAlong = storyProgressAlongRoute(a.item, input.route);
+    const bAlong = storyProgressAlongRoute(b.item, input.route);
+    if (aAlong !== bAlong) return aAlong - bAlong;
+    return b.scores.total - a.scores.total;
+  });
+  selected.forEach((entry, index) => {
+    entry.order = index + 1;
+  });
 
   const selectedIds = new Set(selected.map((s) => s.item.id));
 

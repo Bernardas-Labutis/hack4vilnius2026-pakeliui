@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { MapStage } from "@/components/route-map-types";
 import { mergeCandidates } from "@/data/all-candidates";
 import { CATEGORY_LABELS, type CandidateItem } from "@/data/demo-content";
@@ -162,6 +162,13 @@ export default function Home() {
   const [generating, setGenerating] = useState(false);
   const [generateError, setGenerateError] = useState<string | null>(null);
   const [generated, setGenerated] = useState<CandidateItem[]>([]);
+  const [swipeOffset, setSwipeOffset] = useState(0);
+  const swipeRef = useRef<{
+    pointerId: number;
+    x: number;
+    y: number;
+    active: boolean;
+  } | null>(null);
 
   const route = ROUTES.find((r) => r.id === routeId) ?? ROUTES[0];
   const candidates = useMemo(
@@ -202,7 +209,7 @@ export default function Home() {
           const point = item.geo![0];
           const selected = selectedIds.has(item.id);
           const focused =
-            mapStage !== "idle" && Boolean(focusPinId && item.id === focusPinId);
+            playing && Boolean(focusPinId && item.id === focusPinId);
           return {
             id: item.id,
             lat: point.lat,
@@ -213,7 +220,7 @@ export default function Home() {
             focused,
           };
         }),
-    [candidates, focusPinId, mapStage, selectedIds],
+    [candidates, focusPinId, mapStage, playing, selectedIds],
   );
 
   useEffect(() => {
@@ -272,6 +279,52 @@ export default function Home() {
     setStoryIndex((current) => (current + 1) % stories.length);
     setProgress(0);
     setPlaying(true);
+  }
+
+  function isSwipeIgnoredTarget(target: EventTarget | null) {
+    if (!(target instanceof Element)) return true;
+    return Boolean(target.closest("button, a, input, textarea, select"));
+  }
+
+  function onStoryPointerDown(event: React.PointerEvent<HTMLElement>) {
+    if (event.button !== 0 || stories.length < 2) return;
+    if (isSwipeIgnoredTarget(event.target)) return;
+    swipeRef.current = {
+      pointerId: event.pointerId,
+      x: event.clientX,
+      y: event.clientY,
+      active: false,
+    };
+    setSwipeOffset(0);
+  }
+
+  function onStoryPointerMove(event: React.PointerEvent<HTMLElement>) {
+    const swipe = swipeRef.current;
+    if (!swipe || swipe.pointerId !== event.pointerId) return;
+    const dx = event.clientX - swipe.x;
+    const dy = event.clientY - swipe.y;
+    if (!swipe.active) {
+      if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+      if (Math.abs(dy) > Math.abs(dx)) {
+        swipeRef.current = null;
+        setSwipeOffset(0);
+        return;
+      }
+      swipe.active = true;
+      event.currentTarget.setPointerCapture(event.pointerId);
+    }
+    setSwipeOffset(Math.max(-88, Math.min(88, dx * 0.45)));
+  }
+
+  function finishStorySwipe(event: React.PointerEvent<HTMLElement>) {
+    const swipe = swipeRef.current;
+    if (!swipe || swipe.pointerId !== event.pointerId) return;
+    const dx = event.clientX - swipe.x;
+    swipeRef.current = null;
+    setSwipeOffset(0);
+    if (!swipe.active || Math.abs(dx) < 56) return;
+    if (dx < 0) nextStory();
+    else prevStory();
   }
 
   function togglePlayback() {
@@ -343,6 +396,14 @@ export default function Home() {
   }
 
   function advanceMapStage() {
+    if (mapStage === "filtered") {
+      setSheetOpen(true);
+      setStoryIndex(0);
+      setProgress(0);
+      setExpandedId(undefined);
+      setPlaying(true);
+      return;
+    }
     const index = MAP_STAGES.indexOf(mapStage);
     const next = MAP_STAGES[Math.min(index + 1, MAP_STAGES.length - 1)];
     setMapStageStep(next);
@@ -456,7 +517,6 @@ export default function Home() {
             </div>
             <button
               className="stage-next"
-              disabled={mapStage === "filtered"}
               onClick={advanceMapStage}
               type="button"
             >
@@ -481,7 +541,19 @@ export default function Home() {
               </div>
 
               {story ? (
-                <article className="story-card">
+                <article
+                  className={`story-card${swipeOffset !== 0 ? " is-swiping" : ""}`}
+                  onPointerCancel={finishStorySwipe}
+                  onPointerDown={onStoryPointerDown}
+                  onPointerMove={onStoryPointerMove}
+                  onPointerUp={finishStorySwipe}
+                  style={{
+                    transform:
+                      swipeOffset !== 0
+                        ? `translateX(${swipeOffset}px)`
+                        : undefined,
+                  }}
+                >
                   <p className="eyebrow">
                     {CATEGORY_LABELS[story.item.category]} · balas{" "}
                     {story.scores.total}
