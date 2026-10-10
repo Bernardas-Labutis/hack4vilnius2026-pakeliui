@@ -1408,9 +1408,20 @@ h2 {
 
   .phone-shell {
     width: 100%;
-    min-height: auto;
+    height: 100svh;
+    height: 100dvh;
+    min-height: 100svh;
+    min-height: 100dvh;
     border: 0;
     border-radius: 0;
+  }
+
+  .phone-sheet.is-open .content {
+    padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .phone-sheet.is-open .demo-audio-note {
+    margin-bottom: 2px;
   }
 
   .engine-panel {
