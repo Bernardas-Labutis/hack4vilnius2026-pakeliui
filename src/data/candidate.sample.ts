@@ -35,8 +35,6 @@ export type CandidateItem = {
   category: ContentCategory;
   /** Source trust 0–100 (municipality ≈ 100, major news ≈ 80) */
   sourceConfidence: number;
-  /** Estimated narration length in seconds */
-  durationSec: number;
   /** Optional WGS84 points for map pins */
   geo?: {
     lat: number;
@@ -63,7 +61,6 @@ export const SAMPLE_CANDIDATES: CandidateItem[] = [
     locations: ["zaliasis-tiltas", "neris", "vilnius-centre"],
     category: "history",
     sourceConfidence: 90,
-    durationSec: 42,
     geo: [
       {
         lat: 54.6915,
@@ -86,7 +83,6 @@ export const SAMPLE_CANDIDATES: CandidateItem[] = [
     locations: ["old-town", "cathedral", "vilnius-centre"],
     category: "events",
     sourceConfidence: 80,
-    durationSec: 32,
     geo: [
       {
         lat: 54.6858,

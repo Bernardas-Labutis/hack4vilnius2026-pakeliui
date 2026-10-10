@@ -17,7 +17,9 @@ import {
 import {
   buildFeed,
   formatDuration,
+  formatTextLength,
   rejectionLabel,
+  storyTextLength,
   type ScoredCandidate,
 } from "@/lib/feed-engine";
 import {
@@ -117,7 +119,7 @@ function CandidateRow({
               {entry.item.sourceName}
               {entry.item.curated ? " · kuruota" : ""} ·{" "}
               {CATEGORY_LABELS[entry.item.category]} ·{" "}
-              {formatDuration(entry.item.durationSec)}
+              {formatTextLength(storyTextLength(entry.item))}
             </p>
           </div>
           <strong className="candidate-total">{entry.scores.total}</strong>
@@ -1054,11 +1056,11 @@ export default function Home() {
             <strong>{rejectedForPanel.length}</strong>
           </div>
           <div>
-            <span>Apytiksl. garsas</span>
+            <span>Teksto apimtis</span>
             <strong>
-              {formatDuration(
+              {formatTextLength(
                 playerQueue.reduce(
-                  (sum, entry) => sum + entry.item.durationSec,
+                  (sum, entry) => sum + storyTextLength(entry.item),
                   0,
                 ),
               )}

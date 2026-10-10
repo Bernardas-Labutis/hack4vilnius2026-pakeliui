@@ -43,8 +43,6 @@ export type CandidateItem = {
   category: ContentCategory;
   /** Pre-assigned source confidence 0–100 */
   sourceConfidence: number;
-  /** Estimated narration length in seconds */
-  durationSec: number;
   /** Optional WGS84 points for map pins (same CRS as JUDU GTFS) */
   geo?: GeoPoint[];
   /** Optional local audio path; missing = demo preview only */
@@ -54,7 +52,7 @@ export type CandidateItem = {
 
 /**
  * Shared candidate pool. Same items are scored for every route —
- * selection differences come only from corridor + preference + duration.
+ * selection differences come from corridor, preference, topic, and text budget.
  * publishedAt values are relative to a fixed "demo now" so freshness is stable.
  */
 export const DEMO_NOW = "2026-10-10T10:00:00+03:00";
@@ -72,7 +70,6 @@ export const CANDIDATES: CandidateItem[] = [
     locations: ["zaliasis-tiltas", "neris", "vilnius-centre"],
     category: "history",
     sourceConfidence: 95,
-    durationSec: 42,
     geo: [{ lat: 54.6915, lng: 25.2788, label: "Žaliasis tiltas" }],
     curated: true,
   },
@@ -88,7 +85,6 @@ export const CANDIDATES: CandidateItem[] = [
     locations: ["lukiskes", "vilnius-centre"],
     category: "culture",
     sourceConfidence: 100,
-    durationSec: 38,
     geo: [{ lat: 54.6908, lng: 25.2685, label: "Lukiškių kalėjimas" }],
     curated: true,
   },
@@ -104,7 +100,6 @@ export const CANDIDATES: CandidateItem[] = [
     locations: ["neris", "lukiskes", "vilnius-centre"],
     category: "history",
     sourceConfidence: 95,
-    durationSec: 36,
     geo: [{ lat: 54.6897, lng: 25.2735, label: "Baltasis tiltas" }],
     curated: true,
   },
@@ -120,7 +115,6 @@ export const CANDIDATES: CandidateItem[] = [
     locations: ["cathedral", "old-town", "gediminas"],
     category: "evergreen",
     sourceConfidence: 100,
-    durationSec: 40,
     geo: [{ lat: 54.6857, lng: 25.2872, label: "Katedros varpinė" }],
     curated: true,
   },
@@ -136,7 +130,6 @@ export const CANDIDATES: CandidateItem[] = [
     locations: ["gediminas", "old-town"],
     category: "culture",
     sourceConfidence: 100,
-    durationSec: 38,
     geo: [{ lat: 54.6867, lng: 25.2907, label: "Gedimino bokštas" }],
     curated: true,
   },
@@ -152,7 +145,6 @@ export const CANDIDATES: CandidateItem[] = [
     locations: ["old-town", "gediminas", "vilnius-centre"],
     category: "evergreen",
     sourceConfidence: 100,
-    durationSec: 35,
     geo: [{ lat: 54.6839, lng: 25.2975, label: "Bernardinų sodas" }],
     curated: true,
   },
@@ -168,7 +160,6 @@ export const CANDIDATES: CandidateItem[] = [
     locations: ["old-town"],
     category: "evergreen",
     sourceConfidence: 100,
-    durationSec: 37,
     geo: [{ lat: 54.6831, lng: 25.2935, label: "Šv. Onos bažnyčia" }],
     curated: true,
   },
@@ -184,7 +175,6 @@ export const CANDIDATES: CandidateItem[] = [
     locations: ["cathedral", "old-town", "lukiskes", "neris"],
     category: "events",
     sourceConfidence: 100,
-    durationSec: 45,
     geo: [{ lat: 54.6855, lng: 25.2878, label: "Katedros aikštė" }],
   },
   {
@@ -199,7 +189,6 @@ export const CANDIDATES: CandidateItem[] = [
     locations: ["neris", "zaliasis-tiltas", "lukiskes"],
     category: "events",
     sourceConfidence: 100,
-    durationSec: 40,
     geo: [{ lat: 54.6902, lng: 25.2758, label: "Neries krantinė" }],
   },
   {
@@ -214,7 +203,6 @@ export const CANDIDATES: CandidateItem[] = [
     locations: ["old-town"],
     category: "history",
     sourceConfidence: 95,
-    durationSec: 42,
     geo: [{ lat: 54.682, lng: 25.288, label: "Senamiestis" }],
     curated: true,
   },
@@ -230,7 +218,6 @@ export const CANDIDATES: CandidateItem[] = [
     locations: ["neris", "old-town", "vilnius-centre"],
     category: "events",
     sourceConfidence: 95,
-    durationSec: 34,
     geo: [{ lat: 54.6885, lng: 25.2765, label: "Neries pakrantė" }],
   },
   {
@@ -244,7 +231,6 @@ export const CANDIDATES: CandidateItem[] = [
     locations: ["vilnius-centre", "northern-vilnius", "new-town"],
     category: "news",
     sourceConfidence: 100,
-    durationSec: 34,
     geo: [{ lat: 54.687, lng: 25.28, label: "Centras" }],
   },
   {
@@ -258,7 +244,6 @@ export const CANDIDATES: CandidateItem[] = [
     locations: ["snipiskes", "business-district", "neris"],
     category: "news",
     sourceConfidence: 80,
-    durationSec: 37,
     geo: [{ lat: 54.698, lng: 25.278, label: "Šnipiškės" }],
   },
   {
@@ -272,7 +257,6 @@ export const CANDIDATES: CandidateItem[] = [
     locations: ["neris", "snipiskes", "northern-vilnius"],
     category: "events",
     sourceConfidence: 100,
-    durationSec: 30,
     geo: [{ lat: 54.695, lng: 25.275, label: "Neries pakrantė" }],
   },
   {
@@ -286,7 +270,6 @@ export const CANDIDATES: CandidateItem[] = [
     locations: ["kalvariju", "northern-vilnius"],
     category: "evergreen",
     sourceConfidence: 70,
-    durationSec: 33,
     geo: [{ lat: 54.705, lng: 25.275, label: "Kalvarijų turgus" }],
     curated: true,
   },
@@ -302,7 +285,6 @@ export const CANDIDATES: CandidateItem[] = [
     locations: ["seskine", "laisves-pr", "northern-vilnius"],
     category: "news",
     sourceConfidence: 100,
-    durationSec: 36,
     geo: [{ lat: 54.7128, lng: 25.2505, label: "Šeškinės aikštė" }],
   },
   {
@@ -317,7 +299,6 @@ export const CANDIDATES: CandidateItem[] = [
     locations: ["seskine", "laisves-pr"],
     category: "news",
     sourceConfidence: 100,
-    durationSec: 34,
     geo: [{ lat: 54.7115, lng: 25.2552, label: "Šeškinės poliklinika" }],
   },
   {
@@ -332,7 +313,6 @@ export const CANDIDATES: CandidateItem[] = [
     locations: ["pasilaiciai", "laisves-pr", "northern-vilnius"],
     category: "events",
     sourceConfidence: 100,
-    durationSec: 32,
     geo: [{ lat: 54.7245, lng: 25.2185, label: "Pašilaičiai · Medeinos g." }],
   },
   {
@@ -347,7 +327,6 @@ export const CANDIDATES: CandidateItem[] = [
     locations: ["pasilaiciai", "laisves-pr"],
     category: "news",
     sourceConfidence: 95,
-    durationSec: 35,
     geo: [{ lat: 54.7282, lng: 25.2128, label: "Pašilaičiai · Leičių g." }],
   },
   {
@@ -362,7 +341,6 @@ export const CANDIDATES: CandidateItem[] = [
     locations: ["justiniskes", "laisves-pr"],
     category: "news",
     sourceConfidence: 100,
-    durationSec: 33,
     geo: [{ lat: 54.7168, lng: 25.2265, label: "Justiniškės · Vyturio mokykla" }],
   },
   {
@@ -377,7 +355,6 @@ export const CANDIDATES: CandidateItem[] = [
     locations: ["karoliniskes", "laisves-pr"],
     category: "events",
     sourceConfidence: 100,
-    durationSec: 34,
     geo: [{ lat: 54.6895, lng: 25.2148, label: "Karoliniškių obelynas" }],
   },
   {
@@ -392,7 +369,6 @@ export const CANDIDATES: CandidateItem[] = [
     locations: ["karoliniskes", "laisves-pr"],
     category: "news",
     sourceConfidence: 100,
-    durationSec: 32,
     geo: [{ lat: 54.6848, lng: 25.2215, label: "Karoliniškių šlaitai" }],
   },
   {
@@ -406,7 +382,6 @@ export const CANDIDATES: CandidateItem[] = [
     locations: ["stotis", "vilnius-centre", "northern-vilnius"],
     category: "transport",
     sourceConfidence: 100,
-    durationSec: 28,
     geo: [{ lat: 54.672, lng: 25.278, label: "Transportas" }],
   },
   {
@@ -420,7 +395,6 @@ export const CANDIDATES: CandidateItem[] = [
     locations: ["stotis", "new-town"],
     category: "news",
     sourceConfidence: 85,
-    durationSec: 36,
     geo: [{ lat: 54.671, lng: 25.282, label: "Stoties rajonas" }],
   },
   {
@@ -434,7 +408,6 @@ export const CANDIDATES: CandidateItem[] = [
     locations: ["snipiskes", "business-district"],
     category: "news",
     sourceConfidence: 80,
-    durationSec: 31,
     geo: [{ lat: 54.699, lng: 25.276, label: "Verslo rajonas" }],
   },
   {
@@ -448,7 +421,6 @@ export const CANDIDATES: CandidateItem[] = [
     locations: [],
     category: "news",
     sourceConfidence: 60,
-    durationSec: 45,
   },
   {
     id: "duplicate-bridge",
@@ -462,7 +434,6 @@ export const CANDIDATES: CandidateItem[] = [
     locations: ["zaliasis-tiltas", "neris"],
     category: "history",
     sourceConfidence: 70,
-    durationSec: 25,
     geo: [{ lat: 54.6918, lng: 25.2792, label: "Žaliasis tiltas (dublikatas)" }],
     curated: true,
   },
@@ -485,7 +456,6 @@ export const CANDIDATES: CandidateItem[] = [
     ],
     category: "music",
     sourceConfidence: 100,
-    durationSec: 48,
     geo: [
       {
         lat: 54.6786,
@@ -509,7 +479,6 @@ export const CANDIDATES: CandidateItem[] = [
     locations: ["old-town", "krauzyk-kolonija"],
     category: "culture",
     sourceConfidence: 100,
-    durationSec: 180,
     geo: [
       {
         lat: 54.679,
@@ -533,7 +502,6 @@ export const CANDIDATES: CandidateItem[] = [
     locations: ["vilnius-centre", "new-town", "stotis"],
     category: "transport",
     sourceConfidence: 100,
-    durationSec: 180,
     geo: [
       {
         lat: 54.6872,
@@ -554,7 +522,6 @@ export const CANDIDATES: CandidateItem[] = [
     locations: ["snipiskes", "neris", "business-district"],
     category: "music",
     sourceConfidence: 90,
-    durationSec: 34,
     geo: [{ lat: 54.6975, lng: 25.2755, label: "Šnipiškių krantinė" }],
   },
   {
@@ -568,7 +535,6 @@ export const CANDIDATES: CandidateItem[] = [
     locations: ["kalvariju", "northern-vilnius"],
     category: "sports",
     sourceConfidence: 85,
-    durationSec: 30,
     geo: [{ lat: 54.7065, lng: 25.2745, label: "Kalvarijų g." }],
   },
   {
@@ -582,7 +548,6 @@ export const CANDIDATES: CandidateItem[] = [
     locations: ["seskine", "laisves-pr"],
     category: "sports",
     sourceConfidence: 90,
-    durationSec: 32,
     geo: [{ lat: 54.7135, lng: 25.2485, label: "Šeškinės sporto salė" }],
   },
   {
@@ -596,7 +561,6 @@ export const CANDIDATES: CandidateItem[] = [
     locations: ["stotis", "new-town"],
     category: "crime",
     sourceConfidence: 95,
-    durationSec: 29,
     geo: [{ lat: 54.6708, lng: 25.2815, label: "Stoties prieigos" }],
   },
   {
@@ -610,7 +574,6 @@ export const CANDIDATES: CandidateItem[] = [
     locations: ["pasilaiciai", "laisves-pr", "northern-vilnius"],
     category: "crime",
     sourceConfidence: 90,
-    durationSec: 31,
     geo: [{ lat: 54.7258, lng: 25.2165, label: "Pašilaičiai" }],
   },
   {
@@ -624,7 +587,6 @@ export const CANDIDATES: CandidateItem[] = [
     locations: ["santariskes", "northern-vilnius"],
     category: "science",
     sourceConfidence: 95,
-    durationSec: 36,
     geo: [{ lat: 54.7512, lng: 25.2795, label: "Santariškės" }],
   },
   {
@@ -638,7 +600,6 @@ export const CANDIDATES: CandidateItem[] = [
     locations: ["neris", "snipiskes", "vilnius-centre"],
     category: "science",
     sourceConfidence: 92,
-    durationSec: 33,
     geo: [{ lat: 54.6938, lng: 25.2772, label: "Neries krantinė" }],
   },
 ];

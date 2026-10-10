@@ -79,7 +79,6 @@ function toCandidate(value: unknown): CandidateItem | null {
     category,
     sourceConfidence:
       typeof value.sourceConfidence === "number" ? value.sourceConfidence : 100,
-    durationSec: typeof value.durationSec === "number" ? value.durationSec : 180,
     ...(geo.length > 0 ? { geo } : {}),
   };
 }

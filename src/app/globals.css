@@ -437,15 +437,15 @@ h1 {
 }
 
 .rider-prefs .rider-topics {
-  flex-wrap: nowrap;
-  gap: 3px;
+  flex-wrap: wrap;
+  gap: 4px;
 }
 
 .rider-prefs .rider-topics .pill {
-  flex: 1 1 0;
+  flex: 0 1 auto;
   min-width: 0;
-  padding: 5px 2px;
-  font-size: 9px;
+  padding: 5px 8px;
+  font-size: 10px;
   letter-spacing: -0.01em;
   text-align: center;
   white-space: nowrap;

@@ -26,7 +26,6 @@ Naudok šį JSON formatą (tik vienas objektas, be markdown, be citatų žymių)
     locations: ["old-town", "cathedral", "vilnius-centre"],
     category: "news", // news | culture | history | events | transport | evergreen
     sourceConfidence: 100,
-    durationSec: 180,
     geo: [
       {
         lat: 54.6858,

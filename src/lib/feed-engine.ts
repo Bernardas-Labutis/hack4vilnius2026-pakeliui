@@ -12,7 +12,7 @@ export type RejectionReason =
   | "stale"
   | "duplicate"
   | "too_long"
-  | "duration_budget"
+  | "text_budget"
   | "low_score"
   | "wrong_topic";
 
@@ -41,7 +41,7 @@ export type FeedResult = {
   candidatesFound: number;
   storiesSelected: number;
   filteredOut: number;
-  estimatedAudioSec: number;
+  estimatedTextChars: number;
 };
 
 export type BuildFeedInput = {
@@ -184,9 +184,9 @@ function formatRejection(reason: RejectionReason): string {
     case "duplicate":
       return "Tema jau atrinkta";
     case "too_long":
-      return "Ilgesnė nei likęs kelionės biudžetas";
-    case "duration_budget":
-      return "Kelionės trukmės biudžetas jau pilnas";
+      return "Ilgesnė nei kelionės teksto biudžetas";
+    case "text_budget":
+      return "Kelionės teksto biudžetas jau pilnas";
     case "low_score":
       return "Nusileido stipresniems kandidatams";
     case "wrong_topic":
@@ -223,12 +223,30 @@ function totalScore(
   };
 }
 
+/** Spoken Lithuanian ≈ this many characters per second — maps trip minutes → text budget. */
+const CHARS_PER_SEC = 12;
+
+/** Body used for packing the feed: full article when present, otherwise the summary. */
+export function storyTextLength(item: CandidateItem): number {
+  const full = item.fullText?.trim();
+  if (full) return full.length;
+  return item.summary.trim().length;
+}
+
+export function formatTextLength(chars: number) {
+  const n = Math.max(0, Math.floor(chars || 0));
+  if (n >= 1000) return `${(n / 1000).toFixed(n >= 10000 ? 0 : 1)}k simb.`;
+  return `${n} simb.`;
+}
+
 export function buildFeed(input: BuildFeedInput): FeedResult {
   const now = input.now ?? DEMO_NOW;
   const pool = input.candidates ?? getAllCandidates();
   const topic = input.topic ?? "all";
   // Leave headroom so the feed feels curated, not max-packed.
-  const budgetSec = Math.round(input.durationMinutes * 60 * 0.7);
+  const budgetChars = Math.round(
+    input.durationMinutes * 60 * 0.7 * CHARS_PER_SEC,
+  );
   const maxStories = Math.max(2, Math.ceil(input.durationMinutes / 2));
 
   const base = pool.map((item) => {
@@ -240,12 +258,13 @@ export function buildFeed(input: BuildFeedInput): FeedResult {
       routeRelevance,
       freshness,
       preferenceFit,
+      textChars: storyTextLength(item),
     };
   });
 
   const selected: ScoredCandidate[] = [];
   const selectedItems: CandidateItem[] = [];
-  let usedSec = 0;
+  let usedChars = 0;
   const remaining = new Set(base.map((b) => b.item.id));
 
   while (remaining.size > 0) {
@@ -286,15 +305,15 @@ export function buildFeed(input: BuildFeedInput): FeedResult {
     if (isDuplicate(entry.item, selectedItems)) {
       continue;
     }
-    if (entry.item.durationSec > budgetSec - usedSec) {
-      if (usedSec === 0 && entry.item.durationSec > budgetSec) {
+    if (entry.textChars > budgetChars - usedChars) {
+      if (usedChars === 0 && entry.textChars > budgetChars) {
         continue;
       }
-      if (usedSec > 0) {
+      if (usedChars > 0) {
         continue;
       }
     }
-    if (usedSec + entry.item.durationSec > budgetSec) {
+    if (usedChars + entry.textChars > budgetChars) {
       continue;
     }
 
@@ -305,10 +324,10 @@ export function buildFeed(input: BuildFeedInput): FeedResult {
       selected: true,
       order: selected.length + 1,
     });
-    usedSec += entry.item.durationSec;
+    usedChars += entry.textChars;
 
     if (selected.length >= maxStories) break;
-    if (usedSec >= budgetSec * 0.92) break;
+    if (usedChars >= budgetChars * 0.92) break;
   }
 
   // Playback follows passenger ride order (from → to), not score rank.
@@ -344,10 +363,10 @@ export function buildFeed(input: BuildFeedInput): FeedResult {
         rejectionReason = "stale";
       else if (isDuplicate(entry.item, selectedItems))
         rejectionReason = "duplicate";
-      else if (entry.item.durationSec > budgetSec)
+      else if (entry.textChars > budgetChars)
         rejectionReason = "too_long";
-      else if (usedSec + entry.item.durationSec > budgetSec)
-        rejectionReason = "duration_budget";
+      else if (usedChars + entry.textChars > budgetChars)
+        rejectionReason = "text_budget";
 
       return {
         item: entry.item,
@@ -367,7 +386,7 @@ export function buildFeed(input: BuildFeedInput): FeedResult {
     candidatesFound: pool.length,
     storiesSelected: selected.length,
     filteredOut: rejected.length,
-    estimatedAudioSec: usedSec,
+    estimatedTextChars: usedChars,
   };
 }
 
