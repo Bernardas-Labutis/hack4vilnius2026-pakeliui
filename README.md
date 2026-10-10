@@ -6,7 +6,7 @@ ranking engine.
 
 ## Authors
 
-This project was done by **Gabriele Ciuladataite**, **Mantas Pimpe**, and
+This project was done by **Gabriele Čiuladaitė**, **Mantas Pimpė**, and
 **Bernardas Labutis**.
 
 The demo is intentionally scoped for reliability:
