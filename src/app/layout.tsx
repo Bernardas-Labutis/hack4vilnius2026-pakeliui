@@ -4,12 +4,13 @@ import "./globals.css";
 
 const manrope = Manrope({
   variable: "--font-manrope",
-  subsets: ["latin"],
+  subsets: ["latin", "latin-ext"],
 });
 
 export const metadata: Metadata = {
-  title: "Pakeliui — hear the city on your route",
-  description: "A location-aware audio companion for Vilnius public transport.",
+  title: "Pakeliui — miestas jūsų maršrute",
+  description:
+    "Vietos žiniomis pagrįstas garso palydovas Vilniaus viešajame transporte.",
 };
 
 export const viewport: Viewport = {
@@ -24,7 +25,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="lt">
       <body className={manrope.variable}>{children}</body>
     </html>
   );
