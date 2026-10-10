@@ -28,7 +28,7 @@ export const ROUTES: RouteProfile[] = [
     to: "Stotis",
     label: "Santariškės–Kalvarijų g.–Stotis",
     description:
-      "Eina per Santariškes, Kalvarijų g., Šnipiškes ir Stotį.",
+      "Per Santariškes, Kalvarijų g., Šnipiškes ir Stotį.",
     tripMinutes: 22,
     corridor: [
       "snipiskes",
@@ -64,7 +64,7 @@ export const ROUTES: RouteProfile[] = [
     to: "Stotis",
     label: "Laisvės pr. koridorius",
     description:
-      "Eina per Pašilaičius, Justiniškes, Šeškinę ir Karoliniškes Laisvės prospektu.",
+      "Per Pašilaičius, Justiniškes, Šeškinę ir Karoliniškes Laisvės prospektu.",
     tripMinutes: 24,
     corridor: [
       "pasilaiciai",
