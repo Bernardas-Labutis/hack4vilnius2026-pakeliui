@@ -43,7 +43,7 @@ main,
 }
 
 .demo-layout {
-  gap: 28px;
+  gap: 40px;
   align-items: start;
   justify-content: center;
   grid-template-columns: minmax(0, 480px) minmax(320px, 460px);
@@ -1293,6 +1293,7 @@ h2 {
 @media (max-width: 960px) {
   .demo-layout {
     grid-template-columns: 1fr;
+    gap: 32px;
     place-items: center;
   }
 }
@@ -1302,8 +1303,8 @@ h2 {
   .demo-layout {
     display: flex;
     flex-direction: column;
-    padding: 0;
-    gap: 0;
+    padding: 0 0 24px;
+    gap: 20px;
   }
 
   .phone-shell {
@@ -1314,10 +1315,9 @@ h2 {
   }
 
   .engine-panel {
-    width: 100%;
-    border-radius: 0;
-    border-left: 0;
-    border-right: 0;
+    width: calc(100% - 24px);
+    margin: 0 12px;
+    border-radius: 24px;
   }
 
   .desktop-note {
