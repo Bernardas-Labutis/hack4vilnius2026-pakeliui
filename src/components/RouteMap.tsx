@@ -78,7 +78,9 @@ export default function RouteMap({
   const viewportRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(0.55);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
+  const [ready, setReady] = useState(false);
   const viewRef = useRef({ scale: 0.55, offset: { x: 0, y: 0 } });
+  const fittedRef = useRef(false);
   const dragRef = useRef<{
     pointerId: number;
     startX: number;
@@ -105,6 +107,7 @@ export default function RouteMap({
 
   function commitView(nextScale: number, nextOffset: { x: number; y: number }) {
     const { vw, vh } = viewportSize();
+    if (vw <= 0 || vh <= 0) return viewRef.current;
     const clampedScale = Math.min(
       MAX_SCALE,
       Math.max(coverMinScale(vw, vh, width, height), nextScale),
@@ -143,41 +146,52 @@ export default function RouteMap({
 
   function applyDemoView() {
     const el = viewportRef.current;
-    if (!el) return;
+    if (!el) return false;
     const { vw, vh } = viewportSize();
+    if (vw <= 0 || vh <= 0) return false;
     const floor = coverMinScale(vw, vh, width, height);
     const nextScale = Math.min(
       MAX_SCALE,
       Math.max(
         floor,
-        Math.min(
-          el.clientWidth / DEMO_VIEW.mosaicWidth,
-          el.clientHeight / DEMO_VIEW.mosaicHeight,
-        ),
+        Math.min(vw / DEMO_VIEW.mosaicWidth, vh / DEMO_VIEW.mosaicHeight),
       ),
     );
     commitView(nextScale, {
-      x: el.clientWidth / 2 - DEMO_VIEW.centerX * nextScale,
-      y: el.clientHeight / 2 - DEMO_VIEW.centerY * nextScale,
+      x: vw / 2 - DEMO_VIEW.centerX * nextScale,
+      y: vh / 2 - DEMO_VIEW.centerY * nextScale,
     });
+    fittedRef.current = true;
+    setReady(true);
+    return true;
   }
 
   useEffect(() => {
-    // Apply once the viewport has layout; don't re-fit on later resizes
-    // so manual pan/zoom is preserved — only reclamp to avoid grey gaps.
-    const id = window.requestAnimationFrame(() => applyDemoView());
+    // Home framing on first real layout (hard refresh / mount). Later
+    // resizes only reclamp so manual pan/zoom is preserved.
     const el = viewportRef.current;
-    if (!el || typeof ResizeObserver === "undefined") {
-      return () => window.cancelAnimationFrame(id);
-    }
-    const observer = new ResizeObserver(() => {
+    if (!el) return;
+
+    function syncView() {
+      if (!fittedRef.current) {
+        applyDemoView();
+        return;
+      }
       const { scale: s, offset: o } = viewRef.current;
       commitView(s, o);
+    }
+
+    const id = window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(syncView);
     });
-    observer.observe(el);
+    const observer =
+      typeof ResizeObserver !== "undefined"
+        ? new ResizeObserver(syncView)
+        : null;
+    observer?.observe(el);
     return () => {
       window.cancelAnimationFrame(id);
-      observer.disconnect();
+      observer?.disconnect();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- mount-only fit + resize clamp
   }, []);
@@ -282,6 +296,7 @@ export default function RouteMap({
           style={{
             width,
             height,
+            opacity: ready ? 1 : 0,
             transform: `translate(${offset.x}px, ${offset.y}px) scale(${scale})`,
           }}
         >
@@ -390,7 +405,9 @@ export default function RouteMap({
       <div className="route-map-zoom">
         <button
           aria-label="Reset map view"
-          onClick={applyDemoView}
+          onClick={() => {
+            applyDemoView();
+          }}
           title="Numatytasis vaizdas"
           type="button"
         >
