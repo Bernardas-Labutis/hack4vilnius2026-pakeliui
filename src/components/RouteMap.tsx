@@ -348,36 +348,56 @@ export default function RouteMap({
             ) : null}
 
             {showPins
-              ? pins.map((pin, index) => {
+              ? [...pins]
+                  .sort((a, b) => Number(Boolean(a.focused)) - Number(Boolean(b.focused)))
+                  .map((pin, index) => {
                   const { x, y } = projectToMosaic(pin.lat, pin.lng);
                   const dimmed = Boolean(pin.dimmed);
                   const active = Boolean(pin.active);
+                  const focused = Boolean(pin.focused);
+                  const radius = focused
+                    ? pinRadius + 5
+                    : active
+                      ? pinRadius + 2
+                      : pinRadius;
                   return (
                     <g
                       key={pin.id}
-                      className={
-                        dimmed
-                          ? "route-map-pin is-dimmed"
-                          : active
-                            ? "route-map-pin is-active"
-                            : "route-map-pin"
-                      }
+                      className={[
+                        "route-map-pin",
+                        dimmed ? "is-dimmed" : "",
+                        active ? "is-active" : "",
+                        focused ? "is-focused" : "",
+                      ]
+                        .filter(Boolean)
+                        .join(" ")}
                       style={{
                         animationDelay: `${Math.min(index, 12) * 50}ms`,
                       }}
                     >
+                      {focused ? (
+                        <circle
+                          className="route-map-pin-ring"
+                          cx={x}
+                          cy={y}
+                          fill="none"
+                          r={radius + 8}
+                          stroke="#14221c"
+                          strokeWidth="2"
+                        />
+                      ) : null}
                       <circle
                         cx={x}
                         cy={y}
-                        fill={active ? "#c8f25a" : "#1a6b4d"}
-                        r={active ? pinRadius + 2 : pinRadius}
-                        stroke="#fff"
-                        strokeWidth="2.5"
+                        fill={focused || active ? "#c8f25a" : "#1a6b4d"}
+                        r={radius}
+                        stroke={focused ? "#14221c" : "#fff"}
+                        strokeWidth={focused ? "3.5" : "2.5"}
                       />
-                      {!dimmed ? (
+                      {!dimmed || focused ? (
                         <text
                           className="route-map-pin-label"
-                          x={x + 11}
+                          x={x + 12}
                           y={y + 4}
                         >
                           {pin.label.length > 22

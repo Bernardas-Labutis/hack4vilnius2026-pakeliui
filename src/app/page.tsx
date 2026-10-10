@@ -185,25 +185,6 @@ export default function Home() {
     [feed.selected],
   );
 
-  const mapPins = useMemo(
-    () =>
-      candidates
-        .filter((item) => item.geo?.[0])
-        .map((item) => {
-          const point = item.geo![0];
-          const selected = selectedIds.has(item.id);
-          return {
-            id: item.id,
-            lat: point.lat,
-            lng: point.lng,
-            label: point.label ?? item.title,
-            active: mapStage === "filtered" && selected,
-            dimmed: mapStage === "filtered" && !selected,
-          };
-        }),
-    [candidates, mapStage, selectedIds],
-  );
-
   const stories = feed.selected;
   const safeIndex = Math.min(storyIndex, Math.max(stories.length - 1, 0));
   const story = stories[safeIndex] ?? null;
@@ -211,6 +192,29 @@ export default function Home() {
     expandedId === undefined
       ? (feed.selected[0]?.item.id ?? null)
       : expandedId;
+  const focusPinId = story?.item.id ?? openId;
+
+  const mapPins = useMemo(
+    () =>
+      candidates
+        .filter((item) => item.geo?.[0])
+        .map((item) => {
+          const point = item.geo![0];
+          const selected = selectedIds.has(item.id);
+          const focused =
+            mapStage !== "idle" && Boolean(focusPinId && item.id === focusPinId);
+          return {
+            id: item.id,
+            lat: point.lat,
+            lng: point.lng,
+            label: point.label ?? item.title,
+            active: mapStage === "filtered" && selected,
+            dimmed: mapStage === "filtered" && !selected && !focused,
+            focused,
+          };
+        }),
+    [candidates, focusPinId, mapStage, selectedIds],
+  );
 
   useEffect(() => {
     if (!playing || !story) return;
@@ -254,11 +258,29 @@ export default function Home() {
     resetPlayback();
   }
 
+  function prevStory() {
+    if (stories.length === 0) return;
+    setStoryIndex(
+      (current) => (current - 1 + stories.length) % stories.length,
+    );
+    setProgress(0);
+    setPlaying(true);
+  }
+
   function nextStory() {
     if (stories.length === 0) return;
     setStoryIndex((current) => (current + 1) % stories.length);
     setProgress(0);
     setPlaying(true);
+  }
+
+  function togglePlayback() {
+    if (progress >= 100) {
+      setProgress(0);
+      setPlaying(true);
+      return;
+    }
+    setPlaying((current) => !current);
   }
 
   function setMapStageStep(next: MapStage) {
@@ -466,12 +488,38 @@ export default function Home() {
                   </p>
                   <h2>{story.item.title}</h2>
                   <p className="story-copy">{story.item.summary}</p>
+                  <p className="story-meta">
+                    Paskelbta {story.item.publishedAt.slice(0, 10)}
+                    {" · "}
+                    <a
+                      href={story.item.sourceUrl}
+                      rel="noreferrer"
+                      target="_blank"
+                    >
+                      {story.item.sourceName}
+                    </a>
+                  </p>
 
                   <div className="player">
                     <button
+                      aria-label="Ankstesnė istorija"
+                      className="skip-button"
+                      onClick={prevStory}
+                      type="button"
+                    >
+                      <Icon size={22}>
+                        <path
+                          d="M7 7v10M17 7l-7 5 7 5V7Z"
+                          stroke="currentColor"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                        />
+                      </Icon>
+                    </button>
+                    <button
                       aria-label={playing ? "Pristabdyti garsą" : "Groti garsą"}
                       className="play-button"
-                      onClick={() => setPlaying((current) => !current)}
+                      onClick={togglePlayback}
                       type="button"
                     >
                       {playing ? (
@@ -500,6 +548,7 @@ export default function Home() {
                             ((event.clientX - bounds.left) / bounds.width) *
                               100,
                           );
+                          setPlaying(true);
                         }}
                         type="button"
                       >
@@ -512,7 +561,7 @@ export default function Home() {
                     </div>
                     <button
                       aria-label="Kita istorija"
-                      className="next-button"
+                      className="skip-button"
                       onClick={nextStory}
                       type="button"
                     >

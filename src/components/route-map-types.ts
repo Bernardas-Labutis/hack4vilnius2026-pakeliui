@@ -9,6 +9,8 @@ export type MapPin = {
   active?: boolean;
   /** Faded when outside corridor / not selected */
   dimmed?: boolean;
+  /** Current story / focused item in the player */
+  focused?: boolean;
 };
 
 export type RouteMapProps = {
