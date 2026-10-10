@@ -178,7 +178,7 @@ h1 {
   font-weight: 700;
 }
 
-.colleague-map {
+.route-map {
   position: relative;
   width: 100%;
   height: 100%;
@@ -186,56 +186,56 @@ h1 {
   user-select: none;
 }
 
-.colleague-map-viewport {
+.route-map-viewport {
   width: 100%;
   height: 100%;
   overflow: hidden;
   cursor: grab;
 }
 
-.colleague-map-viewport:active {
+.route-map-viewport:active {
   cursor: grabbing;
 }
 
-.colleague-map-world {
+.route-map-world {
   position: relative;
   transform-origin: 0 0;
   will-change: transform;
 }
 
-.colleague-map-tiles {
+.route-map-tiles {
   position: absolute;
   inset: 0;
 }
 
-.colleague-map-tile {
+.route-map-tile {
   position: absolute;
   display: block;
   pointer-events: none;
 }
 
-.colleague-map-overlay {
+.route-map-overlay {
   position: absolute;
   inset: 0;
   pointer-events: none;
   overflow: visible;
 }
 
-.colleague-pin {
+.route-map-pin {
   opacity: 0;
   animation: pin-in 320ms ease forwards;
 }
 
-.colleague-pin.is-dimmed {
+.route-map-pin.is-dimmed {
   opacity: 0.28;
   animation: none;
 }
 
-.colleague-pin.is-active {
+.route-map-pin.is-active {
   opacity: 1;
 }
 
-.colleague-pin-label {
+.route-map-pin-label {
   fill: #14221c;
   font-size: 11px;
   font-weight: 700;
@@ -244,7 +244,7 @@ h1 {
   stroke-width: 3px;
 }
 
-.colleague-map-badge {
+.route-map-badge {
   position: absolute;
   z-index: 2;
   top: 10px;
@@ -261,13 +261,13 @@ h1 {
   font-weight: 800;
 }
 
-.colleague-map-attrib {
+.route-map-attrib {
   color: rgb(20 34 28 / 45%);
   font-size: 9px;
   font-weight: 700;
 }
 
-.colleague-map-zoom {
+.route-map-zoom {
   position: absolute;
   z-index: 2;
   right: 10px;
@@ -276,7 +276,7 @@ h1 {
   gap: 6px;
 }
 
-.colleague-map-zoom button {
+.route-map-zoom button {
   width: 34px;
   height: 34px;
   color: #14221c;
@@ -1092,202 +1092,6 @@ h2 {
   color: rgb(232 239 233 / 42%);
   font-size: 11px;
   line-height: 1.45;
-}
-
-.engine-footnote a {
-  color: #c8f25a;
-}
-
-/* —— Map paste lab (/lab/map) —— */
-.lab-layout {
-  display: block;
-  width: min(1200px, 100%);
-  margin: 0 auto;
-  padding: 28px 20px 40px;
-  color: #e8efe9;
-}
-
-.lab-header {
-  display: flex;
-  gap: 16px;
-  align-items: flex-start;
-  justify-content: space-between;
-  margin-bottom: 20px;
-}
-
-.lab-kicker {
-  margin: 0 0 6px;
-  color: #c8f25a;
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.lab-header h1 {
-  margin: 0;
-  color: #f6f3ea;
-  font-size: 28px;
-  letter-spacing: -0.04em;
-}
-
-.lab-header p {
-  max-width: 56ch;
-  margin: 8px 0 0;
-  color: rgb(232 239 233 / 68%);
-  font-size: 14px;
-  line-height: 1.5;
-}
-
-.lab-link {
-  color: #c8f25a;
-  font-size: 13px;
-  font-weight: 700;
-  text-decoration: none;
-}
-
-.lab-header-links {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  align-items: flex-end;
-}
-
-.lab-editor-wide {
-  width: 100%;
-}
-
-.lab-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
-  gap: 18px;
-  align-items: start;
-}
-
-.lab-editor,
-.lab-preview {
-  padding: 16px;
-  border: 1px solid rgb(255 255 255 / 10%);
-  border-radius: 22px;
-  background: #13241c;
-}
-
-.lab-toolbar {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 10px;
-}
-
-.lab-button {
-  padding: 10px 14px;
-  color: #14221c;
-  border: 0;
-  border-radius: 12px;
-  background: var(--lime);
-  font-size: 13px;
-  font-weight: 800;
-}
-
-.lab-button.ghost {
-  color: #dce6df;
-  border: 1px solid rgb(255 255 255 / 12%);
-  background: transparent;
-}
-
-.lab-button:disabled {
-  opacity: 0.6;
-}
-
-.lab-textarea {
-  width: 100%;
-  min-height: 420px;
-  padding: 14px;
-  color: #e8efe9;
-  border: 1px solid rgb(255 255 255 / 12%);
-  border-radius: 14px;
-  background: #0d1713;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: 12px;
-  line-height: 1.45;
-  resize: vertical;
-}
-
-.lab-status {
-  margin: 10px 0 0;
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.lab-status.ok {
-  color: #c8f25a;
-}
-
-.lab-status.err {
-  color: #f0a58a;
-}
-
-.lab-rules {
-  margin: 12px 0 0;
-  padding-left: 18px;
-  color: rgb(232 239 233 / 55%);
-  font-size: 12px;
-  line-height: 1.5;
-}
-
-.lab-rules code {
-  color: #c8f25a;
-}
-
-.lab-stage-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 12px;
-}
-
-.lab-phone {
-  width: 100%;
-  min-height: 0;
-}
-
-.lab-phone-top {
-  padding: 14px 16px 8px;
-  color: #14221c;
-  background: var(--paper);
-  font-size: 12px;
-  font-weight: 800;
-}
-
-.lab-map-slot {
-  height: 280px;
-}
-
-.lab-phone-note {
-  margin: 0;
-  padding: 10px 16px 14px;
-  color: var(--muted);
-  background: var(--cream);
-  font-size: 11px;
-  font-weight: 700;
-}
-
-.lab-preview-loading {
-  display: grid;
-  height: 100%;
-  place-items: center;
-  color: var(--muted);
-  font-size: 12px;
-  font-weight: 700;
-}
-
-@media (max-width: 900px) {
-  .lab-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .lab-header {
-    flex-direction: column;
-  }
 }
 
 @media (max-width: 960px) {

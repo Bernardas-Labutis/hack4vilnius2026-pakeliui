@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import type { ColleagueMapProps } from "@/components/colleague-map-types";
+import type { RouteMapProps } from "@/components/route-map-types";
 import {
   BASEMAP,
   listBasemapTiles,
@@ -9,7 +9,6 @@ import {
   projectToMosaic,
 } from "@/data/map-basemap";
 
-const MIN_SCALE = 0.35;
 const MAX_SCALE = 3.2;
 
 /** Default framing captured from the preferred jury view (1G corridor). */
@@ -20,16 +19,57 @@ const DEMO_VIEW = {
   mosaicHeight: 356,
 };
 
+function coverMinScale(vw: number, vh: number, mw: number, mh: number) {
+  if (vw <= 0 || vh <= 0) return 0.55;
+  return Math.max(vw / mw, vh / mh);
+}
+
+function clampOffset(
+  offset: { x: number; y: number },
+  scale: number,
+  vw: number,
+  vh: number,
+  mw: number,
+  mh: number,
+) {
+  const sw = mw * scale;
+  const sh = mh * scale;
+
+  let minX: number;
+  let maxX: number;
+  let minY: number;
+  let maxY: number;
+
+  if (sw <= vw) {
+    minX = maxX = (vw - sw) / 2;
+  } else {
+    minX = vw - sw;
+    maxX = 0;
+  }
+
+  if (sh <= vh) {
+    minY = maxY = (vh - sh) / 2;
+  } else {
+    minY = vh - sh;
+    maxY = 0;
+  }
+
+  return {
+    x: Math.min(maxX, Math.max(minX, offset.x)),
+    y: Math.min(maxY, Math.max(minY, offset.y)),
+  };
+}
+
 /**
- * Offline static Vilnius basemap (local OSM tiles) with pinch/scroll zoom + pan.
- * Pins and route use the same WGS84 → mosaic projection.
+ * Offline static Vilnius basemap (local tiles) with pinch/scroll zoom + pan.
+ * Zoom/pan are clamped so the mosaic always covers the viewport (no grey gaps).
  */
-export default function ColleagueMap({
+export default function RouteMap({
   stage = "idle",
   pins = [],
   routeLine = [],
   routeLabel = "1G",
-}: ColleagueMapProps) {
+}: RouteMapProps) {
   const { width, height } = mosaicSize();
   const tiles = listBasemapTiles();
   const showPins = stage !== "idle";
@@ -38,6 +78,7 @@ export default function ColleagueMap({
   const viewportRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(0.55);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
+  const viewRef = useRef({ scale: 0.55, offset: { x: 0, y: 0 } });
   const dragRef = useRef<{
     pointerId: number;
     startX: number;
@@ -50,21 +91,72 @@ export default function ColleagueMap({
     scale: number;
   } | null>(null);
 
+  useEffect(() => {
+    viewRef.current = { scale, offset };
+  }, [scale, offset]);
+
+  function viewportSize() {
+    const el = viewportRef.current;
+    return {
+      vw: el?.clientWidth ?? 0,
+      vh: el?.clientHeight ?? 0,
+    };
+  }
+
+  function commitView(nextScale: number, nextOffset: { x: number; y: number }) {
+    const { vw, vh } = viewportSize();
+    const clampedScale = Math.min(
+      MAX_SCALE,
+      Math.max(coverMinScale(vw, vh, width, height), nextScale),
+    );
+    const clampedOffset = clampOffset(
+      nextOffset,
+      clampedScale,
+      vw,
+      vh,
+      width,
+      height,
+    );
+    setScale(clampedScale);
+    setOffset(clampedOffset);
+    return { scale: clampedScale, offset: clampedOffset };
+  }
+
+  function zoomToward(
+    nextScaleRaw: number,
+    focalX: number,
+    focalY: number,
+  ) {
+    const { scale: currentScale, offset: currentOffset } = viewRef.current;
+    const { vw, vh } = viewportSize();
+    const nextScale = Math.min(
+      MAX_SCALE,
+      Math.max(coverMinScale(vw, vh, width, height), nextScaleRaw),
+    );
+    const worldX = (focalX - currentOffset.x) / currentScale;
+    const worldY = (focalY - currentOffset.y) / currentScale;
+    commitView(nextScale, {
+      x: focalX - worldX * nextScale,
+      y: focalY - worldY * nextScale,
+    });
+  }
+
   function applyDemoView() {
     const el = viewportRef.current;
     if (!el) return;
+    const { vw, vh } = viewportSize();
+    const floor = coverMinScale(vw, vh, width, height);
     const nextScale = Math.min(
       MAX_SCALE,
       Math.max(
-        MIN_SCALE,
+        floor,
         Math.min(
           el.clientWidth / DEMO_VIEW.mosaicWidth,
           el.clientHeight / DEMO_VIEW.mosaicHeight,
         ),
       ),
     );
-    setScale(nextScale);
-    setOffset({
+    commitView(nextScale, {
       x: el.clientWidth / 2 - DEMO_VIEW.centerX * nextScale,
       y: el.clientHeight / 2 - DEMO_VIEW.centerY * nextScale,
     });
@@ -72,9 +164,22 @@ export default function ColleagueMap({
 
   useEffect(() => {
     // Apply once the viewport has layout; don't re-fit on later resizes
-    // so manual pan/zoom is preserved.
+    // so manual pan/zoom is preserved — only reclamp to avoid grey gaps.
     const id = window.requestAnimationFrame(() => applyDemoView());
-    return () => window.cancelAnimationFrame(id);
+    const el = viewportRef.current;
+    if (!el || typeof ResizeObserver === "undefined") {
+      return () => window.cancelAnimationFrame(id);
+    }
+    const observer = new ResizeObserver(() => {
+      const { scale: s, offset: o } = viewRef.current;
+      commitView(s, o);
+    });
+    observer.observe(el);
+    return () => {
+      window.cancelAnimationFrame(id);
+      observer.disconnect();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- mount-only fit + resize clamp
   }, []);
 
   const pathD =
@@ -89,9 +194,13 @@ export default function ColleagueMap({
 
   function onWheel(event: React.WheelEvent) {
     event.preventDefault();
+    const rect = viewportRef.current?.getBoundingClientRect();
+    if (!rect) return;
     const delta = event.deltaY > 0 ? 0.9 : 1.1;
-    setScale((current) =>
-      Math.min(MAX_SCALE, Math.max(MIN_SCALE, current * delta)),
+    zoomToward(
+      viewRef.current.scale * delta,
+      event.clientX - rect.left,
+      event.clientY - rect.top,
     );
   }
 
@@ -110,7 +219,7 @@ export default function ColleagueMap({
   function onPointerMove(event: React.PointerEvent) {
     const drag = dragRef.current;
     if (!drag || drag.pointerId !== event.pointerId) return;
-    setOffset({
+    commitView(viewRef.current.scale, {
       x: drag.origX + (event.clientX - drag.startX),
       y: drag.origY + (event.clientY - drag.startY),
     });
@@ -126,7 +235,7 @@ export default function ColleagueMap({
     if (event.touches.length === 2) {
       const [a, b] = [event.touches[0], event.touches[1]];
       const distance = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
-      pinchRef.current = { distance, scale };
+      pinchRef.current = { distance, scale: viewRef.current.scale };
       dragRef.current = null;
     }
   }
@@ -135,9 +244,13 @@ export default function ColleagueMap({
     if (event.touches.length === 2 && pinchRef.current) {
       const [a, b] = [event.touches[0], event.touches[1]];
       const distance = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
+      const rect = viewportRef.current?.getBoundingClientRect();
+      if (!rect) return;
+      const focalX = (a.clientX + b.clientX) / 2 - rect.left;
+      const focalY = (a.clientY + b.clientY) / 2 - rect.top;
       const next =
         pinchRef.current.scale * (distance / pinchRef.current.distance);
-      setScale(Math.min(MAX_SCALE, Math.max(MIN_SCALE, next)));
+      zoomToward(next, focalX, focalY);
     }
   }
 
@@ -151,10 +264,10 @@ export default function ColleagueMap({
   const pinRadius = Math.max(5, 8 / Math.sqrt(scale));
 
   return (
-    <div className="colleague-map">
+    <div className="route-map">
       <div
         ref={viewportRef}
-        className="colleague-map-viewport"
+        className="route-map-viewport"
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
@@ -165,20 +278,20 @@ export default function ColleagueMap({
         onWheel={onWheel}
       >
         <div
-          className="colleague-map-world"
+          className="route-map-world"
           style={{
             width,
             height,
             transform: `translate(${offset.x}px, ${offset.y}px) scale(${scale})`,
           }}
         >
-          <div className="colleague-map-tiles" style={{ width, height }}>
+          <div className="route-map-tiles" style={{ width, height }}>
             {tiles.map((tile) => (
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 key={`${tile.x}-${tile.y}`}
                 alt=""
-                className="colleague-map-tile"
+                className="route-map-tile"
                 draggable={false}
                 height={BASEMAP.tileSize}
                 src={tile.src}
@@ -193,7 +306,7 @@ export default function ColleagueMap({
 
           <svg
             aria-hidden="true"
-            className="colleague-map-overlay"
+            className="route-map-overlay"
             height={height}
             viewBox={`0 0 ${width} ${height}`}
             width={width}
@@ -229,10 +342,10 @@ export default function ColleagueMap({
                       key={pin.id}
                       className={
                         dimmed
-                          ? "colleague-pin is-dimmed"
+                          ? "route-map-pin is-dimmed"
                           : active
-                            ? "colleague-pin is-active"
-                            : "colleague-pin"
+                            ? "route-map-pin is-active"
+                            : "route-map-pin"
                       }
                       style={{
                         animationDelay: `${Math.min(index, 12) * 50}ms`,
@@ -248,7 +361,7 @@ export default function ColleagueMap({
                       />
                       {!dimmed ? (
                         <text
-                          className="colleague-pin-label"
+                          className="route-map-pin-label"
                           x={x + 11}
                           y={y + 4}
                         >
@@ -265,16 +378,16 @@ export default function ColleagueMap({
         </div>
       </div>
 
-      <div className="colleague-map-badge">
+      <div className="route-map-badge">
         {stage === "idle" && "Vilnius · offline"}
         {stage === "pins" && `Naujienos · ${pins.length}`}
         {stage === "route" && `Maršrutas ${routeLabel}`}
         {stage === "filtered" &&
           `Variklis · ${pins.filter((p) => p.active).length} atrinkta`}
-        <span className="colleague-map-attrib">© Esri</span>
+        <span className="route-map-attrib">© Esri</span>
       </div>
 
-      <div className="colleague-map-zoom">
+      <div className="route-map-zoom">
         <button
           aria-label="Reset map view"
           onClick={applyDemoView}
@@ -285,18 +398,20 @@ export default function ColleagueMap({
         </button>
         <button
           aria-label="Zoom out"
-          onClick={() =>
-            setScale((s) => Math.max(MIN_SCALE, Number((s * 0.85).toFixed(2))))
-          }
+          onClick={() => {
+            const { vw, vh } = viewportSize();
+            zoomToward(viewRef.current.scale * 0.85, vw / 2, vh / 2);
+          }}
           type="button"
         >
           −
         </button>
         <button
           aria-label="Zoom in"
-          onClick={() =>
-            setScale((s) => Math.min(MAX_SCALE, Number((s * 1.15).toFixed(2))))
-          }
+          onClick={() => {
+            const { vw, vh } = viewportSize();
+            zoomToward(viewRef.current.scale * 1.15, vw / 2, vh / 2);
+          }}
           type="button"
         >
           +

@@ -11,7 +11,7 @@ export type MapPin = {
   dimmed?: boolean;
 };
 
-export type ColleagueMapProps = {
+export type RouteMapProps = {
   stage?: MapStage;
   pins?: MapPin[];
   /** WGS84 [lat, lng] polyline for the prepared route */

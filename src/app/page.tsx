@@ -1,12 +1,10 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import type { MapStage } from "@/components/colleague-map-types";
+import type { MapStage } from "@/components/route-map-types";
 import { mergeCandidates } from "@/data/all-candidates";
-import type { CandidateItem } from "@/data/demo-content";
-import { CATEGORY_LABELS } from "@/data/demo-content";
+import { CATEGORY_LABELS, type CandidateItem } from "@/data/demo-content";
 import { ROUTE_POLYLINES } from "@/data/route-geometry";
 import {
   DURATION_OPTIONS,
@@ -26,7 +24,7 @@ import {
   requestGroqStories,
 } from "@/lib/groq";
 
-const RouteMap = dynamic(() => import("@/components/ColleagueMap"), {
+const RouteMap = dynamic(() => import("@/components/RouteMap"), {
   ssr: false,
   loading: () => <div className="map-loading">Žemėlapis…</div>,
 });
@@ -692,10 +690,7 @@ export default function Home() {
         <p className="engine-footnote">
           Balai apskaičiuojami deterministiškai: maršruto aktualumas 40 %,
           šviežumas 25 %, šaltinio patikimumas 20 %, įvairovė × prioritetas 15 %.
-          Turinys — kuruota demo momentinė kopija, ne gyvas viso miesto rinkimas.{" "}
-          <Link href="/lab/content">Turinio lab →</Link>
-          {" · "}
-          <Link href="/lab/map">Žemėlapio TSX lab →</Link>
+          Turinys — kuruota demo momentinė kopija, ne gyvas viso miesto rinkimas.
         </p>
       </aside>
     </main>

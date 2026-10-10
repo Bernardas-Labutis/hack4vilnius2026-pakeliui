@@ -1,6 +1,6 @@
 /**
  * Sample content format for Pakeliui candidates.
- * Colleague: generate more items in this shape and we can merge them into demo-content.ts
+ * Generate more items in this shape and merge them into demo-content.ts
  *
  * Coordinates (optional): WGS84 decimal degrees, same as JUDU GTFS (stop_lat / stop_lon).
  * summary: short spoken-ready Lithuanian for MP3 (1–3 sentences).
