@@ -122,12 +122,7 @@ function CandidateRow({
             value={entry.scores.diversityPreference}
           />
           <p className="candidate-source">
-            Paskelbta{" "}
-            {new Date(entry.item.publishedAt).toLocaleDateString("lt-LT", {
-              day: "numeric",
-              month: "short",
-              year: "numeric",
-            })}
+            Paskelbta {entry.item.publishedAt.slice(0, 10)}
             {" · "}
             <a href={entry.item.sourceUrl} target="_blank" rel="noreferrer">
               {entry.item.sourceName}
@@ -274,7 +269,7 @@ export default function Home() {
 
   return (
     <main className="demo-layout">
-      <section className="phone-shell">
+      <section className={`phone-shell ${sheetOpen ? "sheet-expanded" : ""}`}>
         <header className="topbar">
           <a className="brand" href="#" aria-label="Pakeliui pradžia">
             <span className="brand-mark">
