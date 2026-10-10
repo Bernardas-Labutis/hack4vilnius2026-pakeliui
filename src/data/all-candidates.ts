@@ -18,10 +18,15 @@ function normalizeItem(item: CandidateItem): CandidateItem {
   return { ...item, locations: [...locations] };
 }
 
-/** Demo pool + uploaded items (uploaded wins on same id). */
-export function getAllCandidates(): CandidateItem[] {
+/** Demo pool + uploaded items, then any generated items (later entries win on the same id). */
+export function mergeCandidates(extra: CandidateItem[] = []): CandidateItem[] {
   const byId = new Map<string, CandidateItem>();
   for (const item of CANDIDATES) byId.set(item.id, normalizeItem(item));
   for (const item of UPLOADED_CANDIDATES) byId.set(item.id, normalizeItem(item));
+  for (const item of extra) byId.set(item.id, normalizeItem(item));
   return [...byId.values()];
+}
+
+export function getAllCandidates(): CandidateItem[] {
+  return mergeCandidates();
 }

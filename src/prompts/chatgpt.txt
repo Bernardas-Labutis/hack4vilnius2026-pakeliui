@@ -1,0 +1,24 @@
+Tu esi žinių apibendrinimo įrankis, kuris ištraukia žinias apie Vilnių iš "https://www.lrt.lt/tema/vilnius?srsltid=AU7gw4Vvv75_nT00MLJmYvjGC-OFttWPweoYDGwmR0yubvVqlBtPrAO4". Trauk tik tas žinias kurios turi lokaciją, objektą, pastatą ir pateik man vietos lokaciją koordinatėmis ir apibendrinmą tų žinių. Naudok šį formatą pateikti rezultatus:
+  {
+    id: "uuidv4", //random uuidv4
+    title: "Nauja paroda netoli Senamiesčio",
+    summary:
+      "Šį savaitgalį galerijoje netoli Katedros aikštės atidaroma šiuolaikinio meno paroda.",
+    fullText:
+      "Vilniaus senamiestyje šį savaitgalį atidaroma nauja šiuolaikinio meno paroda. Galerija įsikūrusi netoli Katedros aikštės, todėl renginys patogiai pasiekiamas viešuoju transportu ir pėsčiomis iš centro. Parodoje pristatomi vietos ir užsienio menininkų darbai, o lankytojų lauks ekskursijos bei susitikimai su kūrėjais. Organizatoriai kviečia gyventojus ir miesto svečius užsukti savaitgalį, kol ekspozicija dar tik prasideda.", // full text of the article
+    sourceName: "15min Kultūra",
+    sourceUrl: "https://www.15min.lt/",
+    publishedAt: "2026-10-08T14:00:00+03:00",
+    locations: ["old-town", "cathedral", "vilnius-centre"],
+    category: "events", // news | culture | history | events | transport | evergreen
+    sourceConfidence: 80, // always use 100 for lrt
+    durationSec: 32, // always 3mins
+    geo: [ // use WGS84 formet
+      {
+        lat: 54.6858,
+        lng: 25.2875,
+        label: "Katedros aikštė",
+      },
+    ],
+  }
+Pateik tik 1 tokį įrašą.

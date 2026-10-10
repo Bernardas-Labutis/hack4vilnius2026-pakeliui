@@ -4,7 +4,8 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import type { MapStage } from "@/components/colleague-map-types";
-import { getAllCandidates } from "@/data/all-candidates";
+import { mergeCandidates } from "@/data/all-candidates";
+import type { CandidateItem } from "@/data/demo-content";
 import { CATEGORY_LABELS } from "@/data/demo-content";
 import { ROUTE_POLYLINES } from "@/data/route-geometry";
 import {
@@ -19,6 +20,11 @@ import {
   rejectionLabel,
   type ScoredCandidate,
 } from "@/lib/feed-engine";
+import {
+  groqErrorMessage,
+  parseGeneratedCandidates,
+  requestGroqStories,
+} from "@/lib/groq";
 
 const RouteMap = dynamic(() => import("@/components/ColleagueMap"), {
   ssr: false,
@@ -154,8 +160,15 @@ export default function Home() {
   const [showRejected, setShowRejected] = useState(false);
   const [mapStage, setMapStage] = useState<MapStage>("idle");
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [generating, setGenerating] = useState(false);
+  const [generateError, setGenerateError] = useState<string | null>(null);
+  const [generated, setGenerated] = useState<CandidateItem[]>([]);
 
   const route = ROUTES.find((r) => r.id === routeId) ?? ROUTES[0];
+  const candidates = useMemo(
+    () => mergeCandidates(generated),
+    [generated],
+  );
 
   const feed = useMemo(
     () =>
@@ -163,8 +176,9 @@ export default function Home() {
         route,
         durationMinutes,
         preference,
+        candidates,
       }),
-    [route, durationMinutes, preference],
+    [route, durationMinutes, preference, candidates],
   );
 
   const selectedIds = useMemo(
@@ -174,7 +188,7 @@ export default function Home() {
 
   const mapPins = useMemo(
     () =>
-      getAllCandidates()
+      candidates
         .filter((item) => item.geo?.[0])
         .map((item) => {
           const point = item.geo![0];
@@ -188,7 +202,7 @@ export default function Home() {
             dimmed: mapStage === "filtered" && !selected,
           };
         }),
-    [mapStage, selectedIds],
+    [candidates, mapStage, selectedIds],
   );
 
   const stories = feed.selected;
@@ -259,6 +273,58 @@ export default function Home() {
     setMapStage(next);
     if (next === "filtered") {
       resetPlayback();
+    }
+  }
+
+  async function generateRouteProfile() {
+    if (generating) return;
+
+    setGenerateError(null);
+    setGenerating(true);
+    try {
+      const articles = candidates
+        .filter((item) => item.sourceUrl.trim())
+        .map((item) => ({
+          title: item.title,
+          sourceUrl: item.sourceUrl.trim(),
+          sourceName: item.sourceName,
+        }));
+      const json = await requestGroqStories(articles);
+      console.log(json);
+      const incoming = parseGeneratedCandidates(json);
+      const nextGenerated = [...generated];
+      for (const item of incoming) {
+        const index = nextGenerated.findIndex((entry) => entry.id === item.id);
+        if (index >= 0) nextGenerated[index] = item;
+        else nextGenerated.push(item);
+      }
+      setGenerated(nextGenerated);
+
+      const nextFeed = buildFeed({
+        route,
+        durationMinutes,
+        preference,
+        candidates: mergeCandidates(nextGenerated),
+      });
+      const added = incoming[0];
+      const selectedIndex = nextFeed.selected.findIndex(
+        (entry) => entry.item.id === added.id,
+      );
+      setInspectOpen(true);
+      setExpandedId(added.id);
+      setProgress(0);
+      setPlaying(false);
+      if (selectedIndex >= 0) {
+        setShowRejected(false);
+        setStoryIndex(selectedIndex);
+      } else {
+        setShowRejected(true);
+      }
+    } catch (caught) {
+      console.log(caught);
+      setGenerateError(groqErrorMessage(caught));
+    } finally {
+      setGenerating(false);
     }
   }
 
@@ -494,6 +560,21 @@ export default function Home() {
         </div>
 
         <div className="controls">
+          <div className="step-block">
+            <button
+              className="step-button"
+              disabled={generating}
+              onClick={generateRouteProfile}
+              type="button"
+            >
+              Pridėti naujieną
+            </button>
+            {generateError ? (
+              <p className="step-error" role="alert">
+                {generateError}
+              </p>
+            ) : null}
+          </div>
           <fieldset>
             <legend>1. Maršruto profilis</legend>
             <div className="choice-grid">

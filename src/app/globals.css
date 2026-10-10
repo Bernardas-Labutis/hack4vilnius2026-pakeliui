@@ -741,6 +741,41 @@ h2 {
   text-transform: uppercase;
 }
 
+.step-block {
+  display: grid;
+  gap: 8px;
+}
+
+.step-button {
+  width: 100%;
+  padding: 12px 14px;
+  color: #14221c;
+  border: 0;
+  border-radius: 14px;
+  background: var(--lime);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  text-align: left;
+}
+
+.step-button:hover:not(:disabled) {
+  background: #b8e24a;
+}
+
+.step-button:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+.step-error {
+  margin: 0;
+  color: #ffb4b4;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
 .choice-grid {
   display: grid;
   gap: 8px;
