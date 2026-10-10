@@ -495,34 +495,50 @@ export const CANDIDATES: CandidateItem[] = [
     ],
   },
   {
-    id: "b9f9c8e6-7e3a-4d2c-bf1a-9c0a4e7d3a1f",
-    title: "Vilniaus senamiesčio kalvarijos gatvės – nauji istorijos takai",
+    id: "550a1c8e-9f3e-4b2d-bc3e-2d5f5e7c4d7b",
+    title:
+      "Sovietmečiu išdarkytas pastatas atgijo antram gyvenimui: tapo vienu brangiausių sostinėje",
     summary:
-      "Vilniaus senamiestyje, ant Kalvarijos gatvės, atvyko nauji muziejaus takai, leidžiantys pažinti miesto kultūrinę tapatybę.",
+      "Šiandien Kražių kolonijoje, šalia Lukiškių aikštės, atgaivė vienas senų pastatų, kurio interjerą atkūrė verslininkė Inga Malinauskienė. Pastatas, išskirtinis architektūros perlas, dabar tampa viena iš vertingiausių Vilniaus būsto kolekcijų.",
     fullText:
-      "Ant Vilniaus senamiesčio Kalvarijos gatvės atvyko nauji muziejaus takai, kurie leidžia lankytojams žengti per 400‑metę istorinę kelionę. Takai susijungia su senovės kelyje, kurioje buvo statyti kalvarijos pastatai ir pastabų, ir su šiuo metu aktyviai naudojamais erdvidais, kuriose vyksta koncertai, parodos ir švietimo renginiai. Kiekvienas takas pasižymi unikaliu architektūrinio dizaino elementu, įkvėptu katedrinio stiliaus, o aplinkinių pastatų istorija – nuo XVI a. bažnyčių iki XIX a. pramonės įrenginių. Naujų takų diegimas buvo susijęs su senamiesčio renovacijos projektu, kuris siekia sukurti lankstų ir patrauklų aplinką miesto istorijai ir kultūrai.\n\nTakų pavadinimai skiriasi pagal jų tematines sritis: „Katedros istorija“, „Senamiesčio žemėlapiai“, „Vasaros festivaliai“. Kiekvienas takas turi interaktyvius ekranus, kurie informuoja apie pastatų architektūrą, istorinius įvykius ir reikšmingus asmenis, susijusius su Kalvarijos gatve. Taip pat į takus įdiegti aplinkos švytintys elementai, kurie sukuria gamtos įspūdį ir leidžia lankytojams mėgautis gamtos grožiu net mieste.\n\nŠis projektas buvo pradėtas 2024 m. pabaigoje ir užbaigtas 2025 m. pirmaja dalimi. Jis buvo finansuotas tiek valstybės fondų, tiek tarptautinių parengimų organizacijų, įskaitant Europos Sąjungos kultūros fondo, pagal „Kultūros tapatybės ir inovacijų stiprinimas“ programą. Projektą įgyvendino „Vilniaus senamiesčio restauracijos ir kultūros centras“, kuris taip pat organizuoja įvairias veiklas ir renginius, susijusius su senamiesčio istorija. LRT stebėjo įgyvendinimą ir dalyvavo renginiuose, skelbiant naujienas ir informuojant lankytojus.\n\nŠis naujas muziejaus takų projektas ne tik suteikia galimybę gilintis į Vilniaus senamiesčio istoriją, bet ir prisideda prie miesto kultūros plėtros, suteikdamas lankytojams unikalią patirtį. Tai svarbi dalis senamiesčio renovacijos ir atnaujinimo planų, kurių tikslas – sukurti šviesų, įdomų ir patrauklų aplinką, atskleisti kultūrinį tapatybės paveldą ir skatinti miesto gyvenimo kokybę.\n",
+      "Pačioje Vilniaus širdyje, šalia Lukiškių aikštės, esanti Kražių kolonija – vienas pirmųjų miesto mikrorajonų, statytų daugiau nei prieš šimtą metų, filantropo Juozapo Montvilos užsakymu. Nedidelis kvartalas iki šiol išlaikė senojo Vilniaus dvasią: tylūs kiemeliai, puošnūs fasadai ir namai, kurie slepia čia gyvenusios inteligentijos paslaptis. Šiandien vienas iš kolonijos perlų išgyvena tikrą atgimimą: sovietmečiu išdarkytas ir į mažus butus padalytas namas buvo atkurtas beveik nuo pamatų. Pastatą restauruoja verslininkė Inga Malinauskienė, kuri kartu su vyru šešerius metus stengėsi, kad griuvena virtęs architektūros perlas vėl sužibėtų. Šeimininkų dėka Kražių kolonija tapo valstybės saugomu objektu, čia restauruoti autentiški laiptai, originalūs turėklai, šimtametis parketas, lubų lipdiniai, marmurinės palangės. Išskirtinio būsto Vilniaus centre interjeras išlaiko namo charakterį ir autentiškumą, tačiau integruoja šiuolaikines technologijas. Pastatas, tapęs vienu brangiausių sostinėje, yra įdomus pavyzdys, kaip senas architektūros stilius gali prisijungti prie šiandienos gyvenimo poreikių.",
     sourceName: "LRT",
     sourceUrl:
-      "https://www.lrt.lt/naujienos/laisvalaikis/13/3098765/vilniaus-senamiescio-kalvarijos-gatves-nauji-istorijos-takai",
-    // Fresh vs DEMO_NOW, short enough for the 3 min budget, corridor tags on both 1G/2G.
-    publishedAt: "2026-10-10T09:45:00+03:00",
-    locations: [
-      "santariskes",
-      "kalvariju",
-      "northern-vilnius",
-      "stotis",
-      "vilnius-centre",
-      "old-town",
-    ],
-    category: "news",
+      "https://www.lrt.lt/naujienos/laisvalaikis/13/2963170/sovietmeciu-isdarkytas-pastatas-atgijo-antram-gyvenimui-tapo-vienu-brangiausiu-sostineje",
+    publishedAt: "2026-07-04T11:01:00+03:00",
+    locations: ["old-town", "krauzyk-kolonija"],
+    category: "culture",
     sourceConfidence: 100,
-    durationSec: 32,
-    // Near Santariškės terminal so ride-order playback places it first.
+    durationSec: 180,
     geo: [
       {
-        lat: 54.7518,
-        lng: 25.2801,
-        label: "Kalvarijos gatvė",
+        lat: 54.679,
+        lng: 25.27,
+        label: "Kražių kolonija",
+      },
+    ],
+    curated: true,
+  },
+  {
+    id: "f3a1c9e7-4d2b-4f6b-9b2a-3e1d6b1c7e4a",
+    title: "Vilniuje atsiras trys naujos viešojo transporto stotelės",
+    summary:
+      "Tris naujos stotelės Vilniuje – „Riovonių“, „Lapių“ ir „Voverių“ – suteiks patogumo gyventojams ir bus įrengtos nuo šv. 10‑ąją.",
+    fullText:
+      "Vilniuje atsiras trys naujos viešojo transporto stotelės – Riovonių, Lapių ir Voverių – nuo šiandien, pranešė savivaldybės įmonė „Judu“. Nuo šeštadienio bus įvesta 119 maršruto autobusu, 123 maršrutas bus įtrauktas iki Riovonių. Taip pat bus atnaujinti 118 ir 122 maršrutai, kurie bus veikiantys dažniau. Visi šie pakeitimai skirti gerinti viešojo transporto paslaugas ir padaryti kelionę patogesnę gyventojams.",
+    sourceName: "LRT",
+    sourceUrl:
+      "https://www.lrt.lt/naujienos/eismas/7/3078008/vilniuje-atsiras-trys-naujos-viesojo-transporto-stoteles",
+    publishedAt: "2026-10-10T06:48:00+03:00",
+    locations: ["vilnius-centre", "new-town", "stotis"],
+    category: "transport",
+    sourceConfidence: 100,
+    durationSec: 180,
+    geo: [
+      {
+        lat: 54.6872,
+        lng: 25.2797,
+        label: "Riovonių stotelė",
       },
     ],
     curated: true,

@@ -39,7 +39,13 @@ export const ROUTES: RouteProfile[] = [
       "stotis",
       "new-town",
       "santariskes",
+      // Centre stretch (also used for ride-order playback)
+      "zaliasis-tiltas",
+      "lukiskes",
+      "vilnius-centre",
+      "old-town",
     ],
+
     // Santariškės → Kalvarijų → Šnipiškės → centras → Stotis
     rideOrder: [
       "santariskes",

@@ -80,7 +80,38 @@ function withUsedArticles(prompt: string, articles: UsedArticle[]) {
 
 Jau panaudoti šio šaltinio straipsniai. Nekartok nė vieno iš jų ir šaltinio nekeisk:
 ${list}
-Pateik kitą straipsnį iš to paties šaltinio.`;
+Pateik kitą straipsnį iš to paties šaltinio — vėl naudok browser_search.`;
+}
+
+function extractJsonObject(text: string): unknown {
+  const trimmed = text.trim();
+  try {
+    return JSON.parse(trimmed);
+  } catch {
+    // fall through
+  }
+
+  const fenced = trimmed.match(/```(?:json)?\s*([\s\S]*?)```/i);
+  if (fenced?.[1]) {
+    return JSON.parse(fenced[1].trim());
+  }
+
+  const start = trimmed.indexOf("{");
+  const end = trimmed.lastIndexOf("}");
+  if (start >= 0 && end > start) {
+    return JSON.parse(trimmed.slice(start, end + 1));
+  }
+
+  throw new Error("Groq returned invalid JSON.");
+}
+
+function isTopicListUrl(url: string) {
+  try {
+    const parsed = new URL(url);
+    return /\/tema\//i.test(parsed.pathname);
+  } catch {
+    return true;
+  }
 }
 
 export async function POST(request: Request) {
@@ -108,6 +139,7 @@ export async function POST(request: Request) {
     ];
     const prompt = withUsedArticles(template, articles);
 
+    // browser_search is incompatible with response_format/structured outputs.
     const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -116,14 +148,15 @@ export async function POST(request: Request) {
       },
       body: JSON.stringify({
         model: "openai/gpt-oss-20b",
-        response_format: { type: "json_object" },
         include_reasoning: false,
         reasoning_effort: "low",
+        tool_choice: "required",
+        tools: [{ type: "browser_search" }],
         messages: [
           {
             role: "system",
             content:
-              "Reply with a single valid JSON object only. No markdown, no extra text.",
+              "You must call browser_search and open live LRT pages before answering. Never invent news, titles, URLs, or facts. Reply with a single valid JSON object only — no markdown fences, no citation markers, no extra text.",
           },
           { role: "user", content: prompt },
         ],
@@ -145,7 +178,35 @@ export async function POST(request: Request) {
     }
 
     try {
-      return NextResponse.json(JSON.parse(content));
+      const parsed = extractJsonObject(content);
+      if (
+        parsed &&
+        typeof parsed === "object" &&
+        "error" in parsed &&
+        typeof (parsed as { error: unknown }).error === "string"
+      ) {
+        return NextResponse.json(
+          { error: (parsed as { error: string }).error },
+          { status: 502 },
+        );
+      }
+
+      const record = parsed as { sourceUrl?: unknown };
+      if (
+        typeof record.sourceUrl !== "string" ||
+        !record.sourceUrl.trim() ||
+        isTopicListUrl(record.sourceUrl)
+      ) {
+        return NextResponse.json(
+          {
+            error:
+              "Groq did not return a real LRT article URL. Try generating again.",
+          },
+          { status: 502 },
+        );
+      }
+
+      return NextResponse.json(parsed);
     } catch {
       return NextResponse.json(
         { error: "Groq returned invalid JSON." },

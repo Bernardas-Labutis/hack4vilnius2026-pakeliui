@@ -5,6 +5,7 @@ const LOCATION_ALIASES: Record<string, string[]> = {
   vilnius: ["vilnius-centre"],
   "vilniaus-senasis-teatras": ["old-town", "vilnius-centre"],
   "skalvijos-kinoteatras": ["lukiskes", "vilnius-centre"],
+  "krauzyk-kolonija": ["lukiskes", "vilnius-centre"],
 };
 
 function normalizeItem(item: CandidateItem): CandidateItem {
