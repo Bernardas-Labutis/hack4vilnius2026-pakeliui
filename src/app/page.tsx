@@ -86,35 +86,52 @@ function ScoreBar({ label, value }: { label: string; value: number }) {
 function CandidateRow({
   entry,
   expanded,
+  inQueue,
   onToggle,
+  onAddToQueue,
 }: {
   entry: ScoredCandidate;
   expanded: boolean;
+  inQueue: boolean;
   onToggle: () => void;
+  onAddToQueue: () => void;
 }) {
   return (
-    <div className={`candidate ${entry.selected ? "is-selected" : "is-rejected"}`}>
-      <button className="candidate-header" onClick={onToggle} type="button">
-        <div>
-          {entry.selected ? (
-            <span className="candidate-badge">#{entry.order} atrinkta</span>
-          ) : (
-            <span className="candidate-badge rejected">
-              {entry.rejectionReason
-                ? rejectionLabel(entry.rejectionReason)
-                : "Atmesta"}
-            </span>
-          )}
-          <h3>{entry.item.title}</h3>
-          <p>
-            {entry.item.sourceName}
-            {entry.item.curated ? " · kuruota" : ""} ·{" "}
-            {CATEGORY_LABELS[entry.item.category]} ·{" "}
-            {formatDuration(entry.item.durationSec)}
-          </p>
-        </div>
-        <strong className="candidate-total">{entry.scores.total}</strong>
-      </button>
+    <div className={`candidate ${inQueue ? "is-selected" : "is-rejected"}`}>
+      <div className="candidate-header">
+        <button className="candidate-main" onClick={onToggle} type="button">
+          <div>
+            {inQueue ? (
+              <span className="candidate-badge">#{entry.order} atrinkta</span>
+            ) : (
+              <span className="candidate-badge rejected">
+                {entry.rejectionReason
+                  ? rejectionLabel(entry.rejectionReason)
+                  : "Atmesta"}
+              </span>
+            )}
+            <h3>{entry.item.title}</h3>
+            <p>
+              {entry.item.sourceName}
+              {entry.item.curated ? " · kuruota" : ""} ·{" "}
+              {CATEGORY_LABELS[entry.item.category]} ·{" "}
+              {formatDuration(entry.item.durationSec)}
+            </p>
+          </div>
+          <strong className="candidate-total">{entry.scores.total}</strong>
+        </button>
+        {!inQueue ? (
+          <button
+            aria-label="Įtraukti į grotuvo eilę"
+            className="queue-add-button"
+            onClick={onAddToQueue}
+            title="Įtraukti į grotuvo eilę"
+            type="button"
+          >
+            +
+          </button>
+        ) : null}
+      </div>
       {expanded ? (
         <div className="candidate-body">
           <p className="candidate-summary">{entry.item.summary}</p>
@@ -166,7 +183,12 @@ export default function Home() {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [generateError, setGenerateError] = useState<string | null>(null);
+  const [generateAddedTitle, setGenerateAddedTitle] = useState<string | null>(
+    null,
+  );
   const [generated, setGenerated] = useState<CandidateItem[]>([]);
+  /** Story ids manually appended after the algorithm's selected queue. */
+  const [queueExtraIds, setQueueExtraIds] = useState<string[]>([]);
   const [swipeOffset, setSwipeOffset] = useState(0);
   const swipeRef = useRef<{
     pointerId: number;
@@ -196,17 +218,42 @@ export default function Home() {
     [route, durationMinutes, preference, candidates],
   );
 
+  const playerQueue = useMemo(() => {
+    const baseIds = new Set(feed.selected.map((entry) => entry.item.id));
+    const extras: ScoredCandidate[] = [];
+    for (const id of queueExtraIds) {
+      if (baseIds.has(id)) continue;
+      const found = feed.all.find((entry) => entry.item.id === id);
+      if (!found) continue;
+      extras.push({
+        ...found,
+        selected: true,
+        rejectionReason: undefined,
+      });
+    }
+    return [...feed.selected, ...extras].map((entry, index) => ({
+      ...entry,
+      selected: true,
+      order: index + 1,
+    }));
+  }, [feed, queueExtraIds]);
+
+  const rejectedForPanel = useMemo(() => {
+    const queued = new Set(playerQueue.map((entry) => entry.item.id));
+    return feed.rejected.filter((entry) => !queued.has(entry.item.id));
+  }, [feed.rejected, playerQueue]);
+
   const selectedIds = useMemo(
-    () => new Set(feed.selected.map((entry) => entry.item.id)),
-    [feed.selected],
+    () => new Set(playerQueue.map((entry) => entry.item.id)),
+    [playerQueue],
   );
 
-  const stories = feed.selected;
+  const stories = playerQueue;
   const safeIndex = Math.min(storyIndex, Math.max(stories.length - 1, 0));
   const story = stories[safeIndex] ?? null;
   const openId =
     expandedId === undefined
-      ? (feed.selected[0]?.item.id ?? null)
+      ? (playerQueue[0]?.item.id ?? null)
       : expandedId;
   const focusPinId = story?.item.id ?? openId;
 
@@ -322,17 +369,28 @@ export default function Home() {
 
   function selectRoute(id: string) {
     setRouteId(id);
+    setQueueExtraIds([]);
     resetPlayback();
   }
 
   function selectDuration(minutes: number) {
     setDurationMinutes(minutes);
+    setQueueExtraIds([]);
     resetPlayback();
   }
 
   function selectPreference(mode: PreferenceMode) {
     setPreference(mode);
+    setQueueExtraIds([]);
     resetPlayback();
+  }
+
+  function addToPlayerQueue(id: string) {
+    if (playerQueue.some((entry) => entry.item.id === id)) return;
+    setQueueExtraIds((current) =>
+      current.includes(id) ? current : [...current, id],
+    );
+    setShowRejected(false);
   }
 
   function prevStory() {
@@ -437,6 +495,7 @@ export default function Home() {
     if (generating) return;
 
     setGenerateError(null);
+    setGenerateAddedTitle(null);
     setGenerating(true);
     try {
       const articles = candidates
@@ -467,6 +526,7 @@ export default function Home() {
       const selectedIndex = nextFeed.selected.findIndex(
         (entry) => entry.item.id === added.id,
       );
+      setGenerateAddedTitle(added.title);
       setInspectOpen(true);
       setExpandedId(added.id);
       setProgress(0);
@@ -479,6 +539,7 @@ export default function Home() {
       }
     } catch (caught) {
       console.log(caught);
+      setGenerateAddedTitle(null);
       setGenerateError(groqErrorMessage(caught));
     } finally {
       setGenerating(false);
@@ -809,6 +870,11 @@ export default function Home() {
                 {generateError}
               </p>
             ) : null}
+            {generateAddedTitle ? (
+              <p className="step-success" role="status">
+                Pridėta: {generateAddedTitle}
+              </p>
+            ) : null}
           </div>
           <fieldset>
             <legend>1. Maršruto profilis</legend>
@@ -873,15 +939,22 @@ export default function Home() {
           </div>
           <div>
             <span>Atrinkta</span>
-            <strong>{feed.storiesSelected}</strong>
+            <strong>{playerQueue.length}</strong>
           </div>
           <div>
             <span>Atmesta</span>
-            <strong>{feed.filteredOut}</strong>
+            <strong>{rejectedForPanel.length}</strong>
           </div>
           <div>
             <span>Apytiksl. garsas</span>
-            <strong>{formatDuration(feed.estimatedAudioSec)}</strong>
+            <strong>
+              {formatDuration(
+                playerQueue.reduce(
+                  (sum, entry) => sum + entry.item.durationSec,
+                  0,
+                ),
+              )}
+            </strong>
           </div>
         </div>
 
@@ -901,23 +974,25 @@ export default function Home() {
                 onClick={() => setShowRejected(false)}
                 type="button"
               >
-                Atrinkta ({feed.storiesSelected})
+                Atrinkta ({playerQueue.length})
               </button>
               <button
                 className={showRejected ? "tab active" : "tab"}
                 onClick={() => setShowRejected(true)}
                 type="button"
               >
-                Atmesta ({feed.filteredOut})
+                Atmesta ({rejectedForPanel.length})
               </button>
             </div>
 
             <div className="candidate-list">
-              {(showRejected ? feed.rejected : feed.selected).map((entry) => (
+              {(showRejected ? rejectedForPanel : playerQueue).map((entry) => (
                 <CandidateRow
                   key={entry.item.id}
                   entry={entry}
                   expanded={openId === entry.item.id}
+                  inQueue={selectedIds.has(entry.item.id)}
+                  onAddToQueue={() => addToPlayerQueue(entry.item.id)}
                   onToggle={() =>
                     setExpandedId((current) =>
                       current === entry.item.id ? null : entry.item.id,

@@ -910,6 +910,14 @@ h2 {
   line-height: 1.45;
 }
 
+.step-success {
+  margin: 0;
+  color: #c8f25a;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
 .choice-grid {
   display: grid;
   gap: 8px;
@@ -919,7 +927,8 @@ h2 {
 .pill,
 .inspect-toggle,
 .tab,
-.candidate-header {
+.candidate-main,
+.queue-add-button {
   font: inherit;
 }
 
@@ -1058,13 +1067,44 @@ h2 {
 .candidate-header {
   display: grid;
   grid-template-columns: 1fr auto;
-  gap: 10px;
+  gap: 8px;
+  align-items: start;
   width: 100%;
   padding: 12px;
+}
+
+.candidate-main {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  width: 100%;
+  padding: 0;
   color: inherit;
   text-align: left;
   border: 0;
   background: transparent;
+  cursor: pointer;
+}
+
+.queue-add-button {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  margin-top: 2px;
+  padding: 0;
+  color: #c8f25a;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1;
+  border: 1px solid rgb(200 242 90 / 35%);
+  border-radius: 8px;
+  background: rgb(200 242 90 / 10%);
+  cursor: pointer;
+}
+
+.queue-add-button:hover {
+  background: rgb(200 242 90 / 22%);
 }
 
 .candidate-badge {
@@ -1093,7 +1133,7 @@ h2 {
   letter-spacing: -0.02em;
 }
 
-.candidate-header p {
+.candidate-main p {
   margin: 4px 0 0;
   color: rgb(232 239 233 / 55%);
   font-size: 11px;

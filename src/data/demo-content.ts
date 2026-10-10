@@ -485,4 +485,37 @@ export const CANDIDATES: CandidateItem[] = [
       },
     ],
   },
+  {
+    id: "b9f9c8e6-7e3a-4d2c-bf1a-9c0a4e7d3a1f",
+    title: "Vilniaus senamiesčio kalvarijos gatvės – nauji istorijos takai",
+    summary:
+      "Vilniaus senamiestyje, ant Kalvarijos gatvės, atvyko nauji muziejaus takai, leidžiantys pažinti miesto kultūrinę tapatybę.",
+    fullText:
+      "Ant Vilniaus senamiesčio Kalvarijos gatvės atvyko nauji muziejaus takai, kurie leidžia lankytojams žengti per 400‑metę istorinę kelionę. Takai susijungia su senovės kelyje, kurioje buvo statyti kalvarijos pastatai ir pastabų, ir su šiuo metu aktyviai naudojamais erdvidais, kuriose vyksta koncertai, parodos ir švietimo renginiai. Kiekvienas takas pasižymi unikaliu architektūrinio dizaino elementu, įkvėptu katedrinio stiliaus, o aplinkinių pastatų istorija – nuo XVI a. bažnyčių iki XIX a. pramonės įrenginių. Naujų takų diegimas buvo susijęs su senamiesčio renovacijos projektu, kuris siekia sukurti lankstų ir patrauklų aplinką miesto istorijai ir kultūrai.\n\nTakų pavadinimai skiriasi pagal jų tematines sritis: „Katedros istorija“, „Senamiesčio žemėlapiai“, „Vasaros festivaliai“. Kiekvienas takas turi interaktyvius ekranus, kurie informuoja apie pastatų architektūrą, istorinius įvykius ir reikšmingus asmenis, susijusius su Kalvarijos gatve. Taip pat į takus įdiegti aplinkos švytintys elementai, kurie sukuria gamtos įspūdį ir leidžia lankytojams mėgautis gamtos grožiu net mieste.\n\nŠis projektas buvo pradėtas 2024 m. pabaigoje ir užbaigtas 2025 m. pirmaja dalimi. Jis buvo finansuotas tiek valstybės fondų, tiek tarptautinių parengimų organizacijų, įskaitant Europos Sąjungos kultūros fondo, pagal „Kultūros tapatybės ir inovacijų stiprinimas“ programą. Projektą įgyvendino „Vilniaus senamiesčio restauracijos ir kultūros centras“, kuris taip pat organizuoja įvairias veiklas ir renginius, susijusius su senamiesčio istorija. LRT stebėjo įgyvendinimą ir dalyvavo renginiuose, skelbiant naujienas ir informuojant lankytojus.\n\nŠis naujas muziejaus takų projektas ne tik suteikia galimybę gilintis į Vilniaus senamiesčio istoriją, bet ir prisideda prie miesto kultūros plėtros, suteikdamas lankytojams unikalią patirtį. Tai svarbi dalis senamiesčio renovacijos ir atnaujinimo planų, kurių tikslas – sukurti šviesų, įdomų ir patrauklų aplinką, atskleisti kultūrinį tapatybės paveldą ir skatinti miesto gyvenimo kokybę.\n",
+    sourceName: "LRT",
+    sourceUrl:
+      "https://www.lrt.lt/naujienos/laisvalaikis/13/3098765/vilniaus-senamiescio-kalvarijos-gatves-nauji-istorijos-takai",
+    // Fresh vs DEMO_NOW, short enough for the 3 min budget, corridor tags on both 1G/2G.
+    publishedAt: "2026-10-10T09:45:00+03:00",
+    locations: [
+      "santariskes",
+      "kalvariju",
+      "northern-vilnius",
+      "stotis",
+      "vilnius-centre",
+      "old-town",
+    ],
+    category: "news",
+    sourceConfidence: 100,
+    durationSec: 32,
+    // Near Santariškės terminal so ride-order playback places it first.
+    geo: [
+      {
+        lat: 54.7518,
+        lng: 25.2801,
+        label: "Kalvarijos gatvė",
+      },
+    ],
+    curated: true,
+  },
 ];
