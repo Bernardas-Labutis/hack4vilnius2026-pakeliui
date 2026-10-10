@@ -627,24 +627,26 @@ export default function Home() {
                 : "Vilnius"}
             </h1>
           </div>
-          <div className="trip-time">
-            <Icon size={18}>
-              <circle
-                cx="12"
-                cy="12"
-                r="8"
-                stroke="currentColor"
-                strokeWidth="1.8"
-              />
-              <path
-                d="M12 8v4l2.5 1.5"
-                stroke="currentColor"
-                strokeLinecap="round"
-                strokeWidth="1.8"
-              />
-            </Icon>
-            {durationMinutes} min. srautas
-          </div>
+          {mapStage === "filtered" ? (
+            <div className="trip-time">
+              <Icon size={18}>
+                <circle
+                  cx="12"
+                  cy="12"
+                  r="8"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                />
+                <path
+                  d="M12 8v4l2.5 1.5"
+                  stroke="currentColor"
+                  strokeLinecap="round"
+                  strokeWidth="1.8"
+                />
+              </Icon>
+              {durationMinutes} min. srautas
+            </div>
+          ) : null}
         </div>
 
         <div className="phone-map-area" aria-label="Maršruto žemėlapis">
