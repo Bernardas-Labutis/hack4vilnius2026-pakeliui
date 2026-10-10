@@ -24,7 +24,7 @@ import {
   requestGroqStories,
 } from "@/lib/groq";
 import {
-  fetchNarrationAudio,
+  fetchNarrationAudioUrl,
   narrationText,
   ttsErrorMessage,
 } from "@/lib/tts";
@@ -178,7 +178,6 @@ export default function Home() {
   const [ttsError, setTtsError] = useState<string | null>(null);
   const [audioDurationSec, setAudioDurationSec] = useState(0);
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const audioUrlsRef = useRef<Map<string, string>>(new Map());
 
   const route = ROUTES.find((r) => r.id === routeId) ?? ROUTES[0];
   const candidates = useMemo(
@@ -234,29 +233,22 @@ export default function Home() {
   );
 
   useEffect(() => {
-    return () => {
-      for (const url of audioUrlsRef.current.values()) {
-        URL.revokeObjectURL(url);
-      }
-      audioUrlsRef.current.clear();
-    };
-  }, []);
-
-  useEffect(() => {
     const el = audioRef.current;
     if (!el) return;
     const audio: HTMLAudioElement = el;
 
     function onTimeUpdate() {
-      if (!audio.duration || !Number.isFinite(audio.duration)) return;
-      setAudioDurationSec(audio.duration);
-      setProgress((audio.currentTime / audio.duration) * 100);
+      const duration = audio.duration;
+      if (!duration || !Number.isFinite(duration) || duration <= 0) return;
+      setAudioDurationSec(duration);
+      setProgress((audio.currentTime / duration) * 100);
     }
 
     function onEnded() {
       if (safeIndex < stories.length - 1) {
         setStoryIndex(safeIndex + 1);
         setProgress(0);
+        setAudioDurationSec(0);
         return;
       }
       setPlaying(false);
@@ -265,10 +257,12 @@ export default function Home() {
 
     audio.addEventListener("timeupdate", onTimeUpdate);
     audio.addEventListener("loadedmetadata", onTimeUpdate);
+    audio.addEventListener("durationchange", onTimeUpdate);
     audio.addEventListener("ended", onEnded);
     return () => {
       audio.removeEventListener("timeupdate", onTimeUpdate);
       audio.removeEventListener("loadedmetadata", onTimeUpdate);
+      audio.removeEventListener("durationchange", onTimeUpdate);
       audio.removeEventListener("ended", onEnded);
     };
   }, [safeIndex, stories.length]);
@@ -290,19 +284,15 @@ export default function Home() {
       setTtsLoading(true);
       setTtsError(null);
       try {
-        let url = audioUrlsRef.current.get(item.id);
-        if (!url) {
-          const blob = await fetchNarrationAudio(narrationText(item));
-          if (cancelled) return;
-          url = URL.createObjectURL(blob);
-          audioUrlsRef.current.set(item.id, url);
-        }
+        const url = await fetchNarrationAudioUrl(narrationText(item));
         if (cancelled) return;
 
-        if (audio.src !== url) {
+        const absoluteUrl = new URL(url, window.location.href).href;
+        if (audio.src !== absoluteUrl) {
           audio.src = url;
           audio.load();
           setProgress(0);
+          setAudioDurationSec(0);
         }
         await audio.play();
       } catch (caught) {
@@ -500,6 +490,8 @@ export default function Home() {
       setSheetOpen(true);
       setStoryIndex(0);
       setProgress(0);
+      setAudioDurationSec(0);
+      setTtsError(null);
       setExpandedId(undefined);
       setPlaying(true);
       return;
@@ -509,13 +501,15 @@ export default function Home() {
     setMapStageStep(next);
   }
 
-  const totalSec =
-    audioDurationSec > 0 ? audioDurationSec : (story?.item.durationSec ?? 0);
-  const elapsedSec = Math.floor((progress / 100) * totalSec);
+  const totalSec = audioDurationSec > 0 ? audioDurationSec : null;
+  const elapsedSec =
+    totalSec != null ? Math.floor((progress / 100) * totalSec) : 0;
 
   return (
     <main className="demo-layout">
       <section className={`phone-shell ${sheetOpen ? "sheet-expanded" : ""}`}>
+        {/* Keep mounted so playback + progress listeners work before the sheet opens. */}
+        <audio ref={audioRef} preload="none" />
         <header className="topbar">
           <a className="brand" href="#" aria-label="Pakeliui pradžia">
             <span className="brand-mark">
@@ -672,7 +666,6 @@ export default function Home() {
                     </a>
                   </p>
 
-                  <audio ref={audioRef} preload="none" />
                   <div className="player">
                     <button
                       aria-label="Ankstesnė istorija"
@@ -738,8 +731,12 @@ export default function Home() {
                         <span style={{ width: `${progress}%` }} />
                       </button>
                       <div className="time-row">
-                        <span>{formatDuration(elapsedSec)}</span>
-                        <span>{formatDuration(totalSec)}</span>
+                        <span>
+                          {totalSec != null ? formatDuration(elapsedSec) : "0:00"}
+                        </span>
+                        <span>
+                          {totalSec != null ? formatDuration(totalSec) : "-"}
+                        </span>
                       </div>
                     </div>
                     <button

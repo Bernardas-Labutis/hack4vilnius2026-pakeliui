@@ -327,7 +327,8 @@ export function buildFeed(input: BuildFeedInput): FeedResult {
 }
 
 export function formatDuration(sec: number) {
-  const m = Math.floor(sec / 60);
-  const s = sec % 60;
+  const total = Math.max(0, Math.floor(sec || 0));
+  const m = Math.floor(total / 60);
+  const s = total % 60;
   return `${m}:${s.toString().padStart(2, "0")}`;
 }

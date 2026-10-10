@@ -1,4 +1,9 @@
 import { NextResponse } from "next/server";
+import {
+  findCachedAudio,
+  ttsCacheKey,
+  writeCachedAudio,
+} from "@/lib/tts-cache";
 
 const MAX_CHARS = 5000;
 const DEFAULT_VOICE_ID = "JBFqnCBsd6RMkjVDRZzb"; // George — narrative
@@ -6,17 +11,6 @@ const DEFAULT_MODEL_ID = "eleven_v3"; // 70+ languages, includes Lithuanian
 
 export async function POST(request: Request) {
   try {
-    const apiKey = process.env.ELEVENLABS_API_KEY;
-    if (!apiKey) {
-      return NextResponse.json(
-        {
-          error:
-            "Missing ELEVENLABS_API_KEY. Add it to .env.local and restart the server.",
-        },
-        { status: 500 },
-      );
-    }
-
     const body = (await request.json().catch(() => ({}))) as {
       text?: unknown;
     };
@@ -32,6 +26,27 @@ export async function POST(request: Request) {
 
     const voiceId = process.env.ELEVENLABS_VOICE_ID?.trim() || DEFAULT_VOICE_ID;
     const modelId = process.env.ELEVENLABS_MODEL_ID?.trim() || DEFAULT_MODEL_ID;
+    const hash = ttsCacheKey(text, voiceId, modelId);
+
+    const cached = await findCachedAudio(hash);
+    if (cached) {
+      return NextResponse.json({
+        url: cached.url,
+        hash,
+        cached: true,
+      });
+    }
+
+    const apiKey = process.env.ELEVENLABS_API_KEY;
+    if (!apiKey) {
+      return NextResponse.json(
+        {
+          error:
+            "Missing ELEVENLABS_API_KEY. Add it to .env.local and restart the server.",
+        },
+        { status: 500 },
+      );
+    }
 
     const response = await fetch(
       `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}?output_format=mp3_44100_128`,
@@ -66,13 +81,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: message }, { status: response.status });
     }
 
-    const audio = await response.arrayBuffer();
-    return new NextResponse(audio, {
-      status: 200,
-      headers: {
-        "Content-Type": "audio/mpeg",
-        "Cache-Control": "no-store",
-      },
+    const audio = Buffer.from(await response.arrayBuffer());
+    const saved = await writeCachedAudio(hash, audio);
+
+    return NextResponse.json({
+      url: saved.url,
+      hash,
+      cached: false,
     });
   } catch (error) {
     const message =
