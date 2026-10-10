@@ -81,6 +81,7 @@ export default function RouteMap({
   const [ready, setReady] = useState(false);
   const viewRef = useRef({ scale: 0.55, offset: { x: 0, y: 0 } });
   const fittedRef = useRef(false);
+  const pinsRef = useRef(pins);
   const dragRef = useRef<{
     pointerId: number;
     startX: number;
@@ -96,6 +97,10 @@ export default function RouteMap({
   useEffect(() => {
     viewRef.current = { scale, offset };
   }, [scale, offset]);
+
+  useEffect(() => {
+    pinsRef.current = pins;
+  }, [pins]);
 
   function viewportSize() {
     const el = viewportRef.current;
@@ -166,9 +171,29 @@ export default function RouteMap({
     return true;
   }
 
+  function centerOnFocusedPin() {
+    const focused = pinsRef.current.find((pin) => pin.focused);
+    if (!focused || !fittedRef.current) return false;
+    const { vw, vh } = viewportSize();
+    if (vw <= 0 || vh <= 0) return false;
+    const { x, y } = projectToMosaic(focused.lat, focused.lng);
+    // Neighbourhood framing: fit ~100 mosaic px into the shorter viewport side.
+    const floor = coverMinScale(vw, vh, width, height);
+    const focusScale = Math.min(
+      MAX_SCALE,
+      Math.max(floor, Math.min(vw, vh) / 100),
+    );
+    commitView(focusScale, {
+      x: vw / 2 - x * focusScale,
+      y: vh / 2 - y * focusScale,
+    });
+    return true;
+  }
+
   useEffect(() => {
     // Home framing on first real layout (hard refresh / mount). Later
-    // resizes only reclamp so manual pan/zoom is preserved.
+    // resizes reclamp, or keep the focused story pin centered when the
+    // drawer opens and shrinks the map.
     const el = viewportRef.current;
     if (!el) return;
 
@@ -177,6 +202,7 @@ export default function RouteMap({
         applyDemoView();
         return;
       }
+      if (centerOnFocusedPin()) return;
       const { scale: s, offset: o } = viewRef.current;
       commitView(s, o);
     }
@@ -195,6 +221,19 @@ export default function RouteMap({
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- mount-only fit + resize clamp
   }, []);
+
+  const focusedPinId = pins.find((pin) => pin.focused)?.id ?? null;
+
+  useEffect(() => {
+    if (!focusedPinId || !fittedRef.current) return;
+    const id = window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => {
+        centerOnFocusedPin();
+      });
+    });
+    return () => window.cancelAnimationFrame(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- recenter when focus target changes
+  }, [focusedPinId]);
 
   const pathD =
     routeLine.length > 1
