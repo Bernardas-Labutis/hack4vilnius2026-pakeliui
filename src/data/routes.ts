@@ -62,7 +62,7 @@ export const ROUTES: RouteProfile[] = [
     number: "2G",
     from: "Santariškės",
     to: "Stotis",
-    label: "Laisvės pr. koridorius",
+    label: "Santariškės–Laisvės pr.–Stotis",
     description:
       "Per Pašilaičius, Justiniškes, Šeškinę ir Karoliniškes Laisvės prospektu.",
     tripMinutes: 24,
