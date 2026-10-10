@@ -97,8 +97,38 @@ export const DURATION_OPTIONS = [3, 10, 20] as const;
 export const PREFERENCE_OPTIONS: {
   id: PreferenceMode;
   label: string;
+  /** Shorter label for the rider phone UI */
+  shortLabel: string;
 }[] = [
-  { id: "recent", label: "Prioritetas naujienoms" },
-  { id: "balanced", label: "Subalansuotas srautas" },
-  { id: "evergreen", label: "Prioritetas amžinoms istorijoms" },
+  {
+    id: "balanced",
+    label: "Subalansuotas srautas",
+    shortLabel: "Subalansuotas",
+  },
+  { id: "recent", label: "Prioritetas naujienoms", shortLabel: "Naujienos" },
+  {
+    id: "evergreen",
+    label: "Prioritetas istorijai",
+    shortLabel: "Istorija",
+  },
+];
+
+export type TopicFilter =
+  | "all"
+  | "transport"
+  | "music"
+  | "sports"
+  | "crime"
+  | "science";
+
+export const TOPIC_OPTIONS: {
+  id: TopicFilter;
+  label: string;
+}[] = [
+  { id: "all", label: "Visos" },
+  { id: "transport", label: "Transportas" },
+  { id: "music", label: "Muzika" },
+  { id: "sports", label: "Sportas" },
+  { id: "crime", label: "Kriminalai" },
+  { id: "science", label: "Mokslas" },
 ];

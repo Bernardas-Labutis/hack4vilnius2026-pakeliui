@@ -7,6 +7,10 @@ const CATEGORIES = new Set<ContentCategory>([
   "events",
   "transport",
   "evergreen",
+  "music",
+  "sports",
+  "crime",
+  "science",
 ]);
 
 function isRecord(value: unknown): value is Record<string, unknown> {

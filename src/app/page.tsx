@@ -10,7 +10,9 @@ import {
   DURATION_OPTIONS,
   PREFERENCE_OPTIONS,
   ROUTES,
+  TOPIC_OPTIONS,
   type PreferenceMode,
+  type TopicFilter,
 } from "@/data/routes";
 import {
   buildFeed,
@@ -170,6 +172,7 @@ export default function Home() {
   const [routeId, setRouteId] = useState(ROUTES[0].id);
   const [durationMinutes, setDurationMinutes] = useState<number>(10);
   const [preference, setPreference] = useState<PreferenceMode>("balanced");
+  const [topic, setTopic] = useState<TopicFilter>("all");
   const [playing, setPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
   const [storyIndex, setStoryIndex] = useState(0);
@@ -213,9 +216,10 @@ export default function Home() {
         route,
         durationMinutes,
         preference,
+        topic,
         candidates,
       }),
-    [route, durationMinutes, preference, candidates],
+    [route, durationMinutes, preference, topic, candidates],
   );
 
   const playerQueue = useMemo(() => {
@@ -385,6 +389,12 @@ export default function Home() {
     resetPlayback();
   }
 
+  function selectTopic(next: TopicFilter) {
+    setTopic(next);
+    setQueueExtraIds([]);
+    resetPlayback();
+  }
+
   function addToPlayerQueue(id: string) {
     if (playerQueue.some((entry) => entry.item.id === id)) return;
     setQueueExtraIds((current) =>
@@ -520,6 +530,7 @@ export default function Home() {
         route,
         durationMinutes,
         preference,
+        topic,
         candidates: mergeCandidates(nextGenerated),
       });
       const added = incoming[0];
@@ -554,7 +565,7 @@ export default function Home() {
       setAudioDurationSec(0);
       setTtsError(null);
       setExpandedId(undefined);
-      setPlaying(true);
+      setPlaying(false);
       return;
     }
     const index = MAP_STAGES.indexOf(mapStage);
@@ -655,192 +666,232 @@ export default function Home() {
             {sheetOpen ? "Suskleisti" : "Išskleisti"}
           </button>
 
-          <div className="map-stage-bar">
-            <div className="map-stage-pills">
-              {MAP_STAGES.map((stage) => (
-                <button
-                  key={stage}
-                  className={
-                    mapStage === stage ? "stage-pill active" : "stage-pill"
-                  }
-                  onClick={() => setMapStageStep(stage)}
-                  type="button"
-                >
-                  {stageLabel(stage, route.number)}
-                </button>
-              ))}
+          {mapStage === "filtered" && sheetOpen ? null : (
+            <div className="map-stage-bar">
+              <div className="map-stage-pills">
+                {MAP_STAGES.map((stage) => (
+                  <button
+                    key={stage}
+                    className={
+                      mapStage === stage ? "stage-pill active" : "stage-pill"
+                    }
+                    onClick={() => setMapStageStep(stage)}
+                    type="button"
+                  >
+                    {stageLabel(stage, route.number)}
+                  </button>
+                ))}
+              </div>
+              <button
+                className="stage-next"
+                onClick={advanceMapStage}
+                type="button"
+              >
+                Toliau
+              </button>
             </div>
-            <button
-              className="stage-next"
-              onClick={advanceMapStage}
-              type="button"
-            >
-              Toliau
-            </button>
-          </div>
+          )}
 
           {sheetOpen ? (
             <div className="content">
-              <div className="now-playing">
-                <div>
-                  <span className="live-dot" />
-                  {mapStage === "filtered"
-                    ? "Atrinktas srautas"
-                    : "Sugeneruotas srautas"}
+              <article
+                className={`story-card${swipeOffset !== 0 ? " is-swiping" : ""}`}
+                onPointerCancel={finishStorySwipe}
+                onPointerDown={onStoryPointerDown}
+                onPointerMove={onStoryPointerMove}
+                onPointerUp={finishStorySwipe}
+                style={{
+                  transform:
+                    swipeOffset !== 0
+                      ? `translateX(${swipeOffset}px)`
+                      : undefined,
+                }}
+              >
+                <div className="rider-prefs">
+                  <div className="rider-prefs-block">
+                    <p className="rider-prefs-label">Prioritetas</p>
+                    <div className="pill-row wrap">
+                      {PREFERENCE_OPTIONS.map((option) => (
+                        <button
+                          key={option.id}
+                          className={
+                            preference === option.id ? "pill active" : "pill"
+                          }
+                          onClick={() => selectPreference(option.id)}
+                          type="button"
+                        >
+                          {option.shortLabel}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="rider-prefs-block">
+                    <p className="rider-prefs-label">Temos</p>
+                    <div className="pill-row rider-topics">
+                      {TOPIC_OPTIONS.map((option) => (
+                        <button
+                          key={option.id}
+                          className={
+                            topic === option.id ? "pill active" : "pill"
+                          }
+                          onClick={() => selectTopic(option.id)}
+                          type="button"
+                        >
+                          {option.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 </div>
-                <span>
-                  {stories.length === 0
-                    ? "0 istorijų"
-                    : `${safeIndex + 1} iš ${stories.length}`}
-                </span>
-              </div>
 
-              {story ? (
-                <article
-                  className={`story-card${swipeOffset !== 0 ? " is-swiping" : ""}`}
-                  onPointerCancel={finishStorySwipe}
-                  onPointerDown={onStoryPointerDown}
-                  onPointerMove={onStoryPointerMove}
-                  onPointerUp={finishStorySwipe}
-                  style={{
-                    transform:
-                      swipeOffset !== 0
-                        ? `translateX(${swipeOffset}px)`
-                        : undefined,
-                  }}
-                >
-                  <p className="eyebrow">
-                    {CATEGORY_LABELS[story.item.category]} · balas{" "}
-                    {story.scores.total}
-                  </p>
-                  <h2>{story.item.title}</h2>
-                  <p className="story-copy">{story.item.summary}</p>
-                  <p className="story-meta">
-                    Paskelbta {story.item.publishedAt.slice(0, 10)}
-                    {" · "}
-                    <a
-                      href={story.item.sourceUrl}
-                      rel="noreferrer"
-                      target="_blank"
-                    >
-                      {story.item.sourceName}
-                    </a>
-                  </p>
+                <div className="now-playing">
+                  <div>
+                    <span className="live-dot" />
+                    {mapStage === "filtered"
+                      ? "Atrinktas srautas"
+                      : "Sugeneruotas srautas"}
+                  </div>
+                  <span>
+                    {stories.length === 0
+                      ? "0 istorijų"
+                      : `${safeIndex + 1} iš ${stories.length}`}
+                  </span>
+                </div>
 
-                  <div className="player">
-                    <button
-                      aria-label="Ankstesnė istorija"
-                      className="skip-button"
-                      onClick={prevStory}
-                      type="button"
-                    >
-                      <Icon size={22}>
-                        <path
-                          d="M7 7v10M17 7l-7 5 7 5V7Z"
-                          stroke="currentColor"
-                          strokeLinejoin="round"
-                          strokeWidth="2"
-                        />
-                      </Icon>
-                    </button>
-                    <button
-                      aria-label={
-                        ttsLoading
-                          ? "Kraunamas garsas"
-                          : playing
-                            ? "Pristabdyti garsą"
-                            : "Groti garsą"
-                      }
-                      className="play-button"
-                      disabled={ttsLoading}
-                      onClick={togglePlayback}
-                      type="button"
-                    >
-                      {ttsLoading ? (
-                        <Icon size={24}>
-                          <circle
-                            cx="12"
-                            cy="12"
-                            r="8"
-                            stroke="currentColor"
-                            strokeDasharray="36 20"
-                            strokeWidth="2.5"
-                          />
-                        </Icon>
-                      ) : playing ? (
-                        <Icon size={24}>
-                          <path
-                            d="M9 7v10M15 7v10"
-                            stroke="currentColor"
-                            strokeLinecap="round"
-                            strokeWidth="2.5"
-                          />
-                        </Icon>
-                      ) : (
-                        <Icon size={24}>
-                          <path d="m9 7 9 5-9 5V7Z" fill="currentColor" />
-                        </Icon>
-                      )}
-                    </button>
-                    <div className="progress-wrap">
+                {story ? (
+                  <>
+                    <p className="eyebrow">
+                      {CATEGORY_LABELS[story.item.category]}
+                    </p>
+                    <h2>{story.item.title}</h2>
+                    <p className="story-copy">{story.item.summary}</p>
+                    <p className="story-meta">
+                      Paskelbta {story.item.publishedAt.slice(0, 10)}
+                      {" · "}
+                      <a
+                        href={story.item.sourceUrl}
+                        rel="noreferrer"
+                        target="_blank"
+                      >
+                        {story.item.sourceName}
+                      </a>
+                    </p>
+
+                    <div className="player">
                       <button
-                        aria-label="Peršokti garsą"
-                        className="progress-track"
-                        onClick={seekPlayback}
+                        aria-label="Ankstesnė istorija"
+                        className="skip-button"
+                        onClick={prevStory}
                         type="button"
                       >
-                        <span style={{ width: `${progress}%` }} />
+                        <Icon size={22}>
+                          <path
+                            d="M7 7v10M17 7l-7 5 7 5V7Z"
+                            stroke="currentColor"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                          />
+                        </Icon>
                       </button>
-                      <div className="time-row">
-                        <span>
-                          {totalSec != null ? formatDuration(elapsedSec) : "0:00"}
-                        </span>
-                        <span>
-                          {totalSec != null ? formatDuration(totalSec) : "-"}
-                        </span>
+                      <button
+                        aria-label={
+                          ttsLoading
+                            ? "Kraunamas garsas"
+                            : playing
+                              ? "Pristabdyti garsą"
+                              : "Groti garsą"
+                        }
+                        className="play-button"
+                        disabled={ttsLoading}
+                        onClick={togglePlayback}
+                        type="button"
+                      >
+                        {ttsLoading ? (
+                          <Icon size={24}>
+                            <circle
+                              cx="12"
+                              cy="12"
+                              r="8"
+                              stroke="currentColor"
+                              strokeDasharray="36 20"
+                              strokeWidth="2.5"
+                            />
+                          </Icon>
+                        ) : playing ? (
+                          <Icon size={24}>
+                            <path
+                              d="M9 7v10M15 7v10"
+                              stroke="currentColor"
+                              strokeLinecap="round"
+                              strokeWidth="2.5"
+                            />
+                          </Icon>
+                        ) : (
+                          <Icon size={24}>
+                            <path d="m9 7 9 5-9 5V7Z" fill="currentColor" />
+                          </Icon>
+                        )}
+                      </button>
+                      <div className="progress-wrap">
+                        <button
+                          aria-label="Peršokti garsą"
+                          className="progress-track"
+                          onClick={seekPlayback}
+                          type="button"
+                        >
+                          <span style={{ width: `${progress}%` }} />
+                        </button>
+                        <div className="time-row">
+                          <span>
+                            {totalSec != null
+                              ? formatDuration(elapsedSec)
+                              : "0:00"}
+                          </span>
+                          <span>
+                            {totalSec != null
+                              ? formatDuration(totalSec)
+                              : "-"}
+                          </span>
+                        </div>
                       </div>
+                      <button
+                        aria-label="Kita istorija"
+                        className="skip-button"
+                        onClick={nextStory}
+                        type="button"
+                      >
+                        <Icon size={22}>
+                          <path
+                            d="m7 7 7 5-7 5V7ZM17 7v10"
+                            stroke="currentColor"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                          />
+                        </Icon>
+                      </button>
                     </div>
-                    <button
-                      aria-label="Kita istorija"
-                      className="skip-button"
-                      onClick={nextStory}
-                      type="button"
-                    >
-                      <Icon size={22}>
-                        <path
-                          d="m7 7 7 5-7 5V7ZM17 7v10"
-                          stroke="currentColor"
-                          strokeLinejoin="round"
-                          strokeWidth="2"
-                        />
-                      </Icon>
-                    </button>
-                  </div>
-                  <p className="demo-audio-note">
-                    {ttsError
-                      ? ttsError
-                      : ttsLoading
-                        ? "Generuojamas garsas…"
-                        : story.item.fullText?.trim()
-                          ? "Groja pilną straipsnio tekstą"
-                          : "Groja santrauką — pilno teksto nėra"}
-                  </p>
-                </article>
-              ) : (
-                <article className="story-card">
-                  <h2>Šiam biudžetui istorijų nerasta</h2>
-                  <p className="story-copy">
-                    Pabandykite ilgesnę kelionės trukmę arba kitą prioritetą.
-                  </p>
-                </article>
-              )}
+                    <p className="demo-audio-note">
+                      {ttsError
+                        ? ttsError
+                        : ttsLoading
+                          ? "Generuojamas garsas…"
+                          : story.item.fullText?.trim()
+                            ? "Groja pilną straipsnio tekstą"
+                            : "Groja santrauką — pilno teksto nėra"}
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <h2>Šiam biudžetui istorijų nerasta</h2>
+                    <p className="story-copy">
+                      Pabandykite ilgesnę kelionės trukmę, kitą prioritetą ar
+                      temą.
+                    </p>
+                  </>
+                )}
+              </article>
             </div>
-          ) : (
-            <p className="sheet-collapsed-hint">
-              {stageLabel(mapStage, route.number)}
-              {story ? ` · ${story.item.title}` : ""}
-            </p>
-          )}
+          ) : null}
         </div>
       </section>
 
@@ -849,9 +900,9 @@ export default function Home() {
           <p className="engine-kicker">Pakeliui srauto atranka</p>
           <h2>Kaip sudarėme jūsų srautą</h2>
           <p>
-            Vienas bendras turinio rinkinys. Pakeiskite maršrutą, trukmę ar
-            prioritetą — reitingavimas iš naujo sudaro grojaraštį ir paaiškina
-            kiekvieną sprendimą.
+            Vienas bendras turinio rinkinys. Pakeiskite maršrutą, trukmę,
+            prioritetą ar temą — reitingavimas iš naujo sudaro grojaraštį ir
+            paaiškina kiekvieną sprendimą.
           </p>
         </div>
 
@@ -923,6 +974,22 @@ export default function Home() {
                     preference === option.id ? "pill active" : "pill"
                   }
                   onClick={() => selectPreference(option.id)}
+                  type="button"
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend>4. Temos</legend>
+            <div className="pill-row wrap">
+              {TOPIC_OPTIONS.map((option) => (
+                <button
+                  key={option.id}
+                  className={topic === option.id ? "pill active" : "pill"}
+                  onClick={() => selectTopic(option.id)}
                   type="button"
                 >
                   {option.label}

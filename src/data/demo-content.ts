@@ -4,7 +4,11 @@ export type ContentCategory =
   | "history"
   | "events"
   | "transport"
-  | "evergreen";
+  | "evergreen"
+  | "music"
+  | "sports"
+  | "crime"
+  | "science";
 
 export const CATEGORY_LABELS: Record<ContentCategory, string> = {
   news: "naujienos",
@@ -13,6 +17,10 @@ export const CATEGORY_LABELS: Record<ContentCategory, string> = {
   events: "renginiai",
   transport: "transportas",
   evergreen: "amžina",
+  music: "muzika",
+  sports: "sportas",
+  crime: "kriminalai",
+  science: "mokslas",
 };
 
 export type GeoPoint = {
@@ -473,8 +481,9 @@ export const CANDIDATES: CandidateItem[] = [
       "vilnius-centre",
       "vilniaus-senasis-teatras",
       "skalvijos-kinoteatras",
+      "stotis",
     ],
-    category: "culture",
+    category: "music",
     sourceConfidence: 100,
     durationSec: 48,
     geo: [
@@ -517,5 +526,103 @@ export const CANDIDATES: CandidateItem[] = [
       },
     ],
     curated: true,
+  },
+  {
+    id: "snipiskes-concert",
+    title: "Vasaros koncertai Šnipiškių krantinėje",
+    summary:
+      "Prie Neries planuojama atvira koncertų serija – vietiniai ir svečių atlikėjai, orientuoti į vakarinius miestiečių pasivaikščiojimus.",
+    sourceName: "Go Vilnius",
+    sourceUrl: "https://www.govilnius.lt/",
+    publishedAt: "2026-09-28T16:00:00+03:00",
+    locations: ["snipiskes", "neris", "business-district"],
+    category: "music",
+    sourceConfidence: 90,
+    durationSec: 34,
+    geo: [{ lat: 54.6975, lng: 25.2755, label: "Šnipiškių krantinė" }],
+  },
+  {
+    id: "kalvariju-run",
+    title: "Kalvarijų gatvėje – bendruomenės bėgimas",
+    summary:
+      "Sekmadienį Kalvarijų g. koridoriumi vyks mėgėjų bėgimas: trumpi ir ilgesni nuotoliai, registracija prie turgaus aikštės.",
+    sourceName: "15min",
+    sourceUrl: "https://www.15min.lt/",
+    publishedAt: "2026-10-04T10:30:00+03:00",
+    locations: ["kalvariju", "northern-vilnius"],
+    category: "sports",
+    sourceConfidence: 85,
+    durationSec: 30,
+    geo: [{ lat: 54.7065, lng: 25.2745, label: "Kalvarijų g." }],
+  },
+  {
+    id: "seskine-arena-sports",
+    title: "Šeškinėje – vaikų krepšinio turnyras",
+    summary:
+      "Savaitgalį Šeškinės sporto salėje – rajono mokyklų krepšinio turnyras; organizatoriai kviečia šeimas stebėti rungtynes nemokamai.",
+    sourceName: "LRT",
+    sourceUrl: "https://www.lrt.lt/",
+    publishedAt: "2026-10-03T14:00:00+03:00",
+    locations: ["seskine", "laisves-pr"],
+    category: "sports",
+    sourceConfidence: 90,
+    durationSec: 32,
+    geo: [{ lat: 54.7135, lng: 25.2485, label: "Šeškinės sporto salė" }],
+  },
+  {
+    id: "stotis-theft-alert",
+    title: "Policija įspėja dėl kišenvagių prie stoties",
+    summary:
+      "Vilniaus apskrities VPK: padaugėjo kišenvagysčių geležinkelio stoties prieigose – prašoma saugoti rankines ir telefonus minioje.",
+    sourceName: "LRT",
+    sourceUrl: "https://www.lrt.lt/",
+    publishedAt: "2026-10-09T08:20:00+03:00",
+    locations: ["stotis", "new-town"],
+    category: "crime",
+    sourceConfidence: 95,
+    durationSec: 29,
+    geo: [{ lat: 54.6708, lng: 25.2815, label: "Stoties prieigos" }],
+  },
+  {
+    id: "pasilaiciai-scam",
+    title: "Pašilaičiuose – įspėjimas dėl netikrų kurjerių",
+    summary:
+      "Gyventojai praneša apie sukčius, apsimetančius siuntų kurjeriais prie daugiabučių; policija rekomenduoja netikėti skubiais prašymais sumokėti.",
+    sourceName: "15min",
+    sourceUrl: "https://www.15min.lt/",
+    publishedAt: "2026-10-07T11:10:00+03:00",
+    locations: ["pasilaiciai", "laisves-pr", "northern-vilnius"],
+    category: "crime",
+    sourceConfidence: 90,
+    durationSec: 31,
+    geo: [{ lat: 54.7258, lng: 25.2165, label: "Pašilaičiai" }],
+  },
+  {
+    id: "santariskes-research",
+    title: "Santariškėse – naujas medicinos tyrimų centras",
+    summary:
+      "Pristatytas planas plėsti biomedicinos laboratorijas Santariškių klinikų miestelyje – daugiau vietos klinikiniams tyrimams ir studentų praktikoms.",
+    sourceName: "LRT",
+    sourceUrl: "https://www.lrt.lt/",
+    publishedAt: "2026-10-02T09:40:00+03:00",
+    locations: ["santariskes", "northern-vilnius"],
+    category: "science",
+    sourceConfidence: 95,
+    durationSec: 36,
+    geo: [{ lat: 54.7512, lng: 25.2795, label: "Santariškės" }],
+  },
+  {
+    id: "neris-air-sensors",
+    title: "Prie Neries – nauji oro kokybės jutikliai",
+    summary:
+      "Miestas diegia papildomus smulkiųjų kietųjų dalelių jutiklius palei Nerį; duomenys bus vieši realiuoju laiku miesto atvirųjų duomenų portale.",
+    sourceName: "Vilniaus miestas",
+    sourceUrl: "https://vilnius.lt/",
+    publishedAt: "2026-10-06T15:15:00+03:00",
+    locations: ["neris", "snipiskes", "vilnius-centre"],
+    category: "science",
+    sourceConfidence: 92,
+    durationSec: 33,
+    geo: [{ lat: 54.6938, lng: 25.2772, label: "Neries krantinė" }],
   },
 ];

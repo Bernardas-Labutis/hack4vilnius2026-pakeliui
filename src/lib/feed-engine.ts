@@ -4,7 +4,7 @@ import {
   type CandidateItem,
   type ContentCategory,
 } from "@/data/demo-content";
-import type { PreferenceMode, RouteProfile } from "@/data/routes";
+import type { PreferenceMode, RouteProfile, TopicFilter } from "@/data/routes";
 import { storyProgressAlongRoute } from "@/lib/route-progress";
 
 export type RejectionReason =
@@ -13,7 +13,8 @@ export type RejectionReason =
   | "duplicate"
   | "too_long"
   | "duration_budget"
-  | "low_score";
+  | "low_score"
+  | "wrong_topic";
 
 export type ScoreBreakdown = {
   routeRelevance: number;
@@ -47,6 +48,7 @@ export type BuildFeedInput = {
   route: RouteProfile;
   durationMinutes: number;
   preference: PreferenceMode;
+  topic?: TopicFilter;
   now?: string;
   candidates?: CandidateItem[];
 };
@@ -60,17 +62,54 @@ const WEIGHTS = {
 
 const HALF_LIFE_HOURS: Record<ContentCategory, number> = {
   news: 24,
+  crime: 24,
   events: 48,
+  music: 48,
+  sports: 48,
   transport: 72,
+  science: 120,
   culture: 168,
   history: 720,
   evergreen: 1440,
 };
 
 const PREFERENCE_BOOST: Record<PreferenceMode, Partial<Record<ContentCategory, number>>> = {
-  recent: { news: 100, events: 90, transport: 80, culture: 50, history: 30, evergreen: 20 },
-  balanced: { news: 70, events: 75, culture: 70, history: 70, transport: 70, evergreen: 70 },
-  evergreen: { evergreen: 100, history: 95, culture: 90, events: 50, transport: 40, news: 25 },
+  recent: {
+    news: 100,
+    crime: 95,
+    events: 90,
+    sports: 85,
+    music: 80,
+    transport: 80,
+    science: 60,
+    culture: 50,
+    history: 30,
+    evergreen: 20,
+  },
+  balanced: {
+    news: 100,
+    culture: 100,
+    history: 100,
+    events: 100,
+    transport: 100,
+    evergreen: 100,
+    music: 100,
+    sports: 100,
+    crime: 100,
+    science: 100,
+  },
+  evergreen: {
+    evergreen: 100,
+    history: 95,
+    culture: 90,
+    science: 70,
+    music: 55,
+    events: 50,
+    sports: 45,
+    transport: 40,
+    news: 25,
+    crime: 20,
+  },
 };
 
 /** Topic keys used to detect near-duplicates in the demo pool */
@@ -150,6 +189,8 @@ function formatRejection(reason: RejectionReason): string {
       return "Kelionės trukmės biudžetas jau pilnas";
     case "low_score":
       return "Nusileido stipresniems kandidatams";
+    case "wrong_topic":
+      return "Ne pasirinkta tema";
   }
 }
 
@@ -185,6 +226,7 @@ function totalScore(
 export function buildFeed(input: BuildFeedInput): FeedResult {
   const now = input.now ?? DEMO_NOW;
   const pool = input.candidates ?? getAllCandidates();
+  const topic = input.topic ?? "all";
   // Leave headroom so the feed feels curated, not max-packed.
   const budgetSec = Math.round(input.durationMinutes * 60 * 0.7);
   const maxStories = Math.max(2, Math.ceil(input.durationMinutes / 2));
@@ -214,6 +256,7 @@ export function buildFeed(input: BuildFeedInput): FeedResult {
 
     for (const entry of base) {
       if (!remaining.has(entry.item.id)) continue;
+      if (topic !== "all" && entry.item.category !== topic) continue;
 
       const diversity = scoreDiversity(entry.item, selectedItems);
       const scores = totalScore(
@@ -294,7 +337,9 @@ export function buildFeed(input: BuildFeedInput): FeedResult {
       );
 
       let rejectionReason: RejectionReason = "low_score";
-      if (scores.routeRelevance < 25) rejectionReason = "irrelevant";
+      if (topic !== "all" && entry.item.category !== topic)
+        rejectionReason = "wrong_topic";
+      else if (scores.routeRelevance < 25) rejectionReason = "irrelevant";
       else if (input.preference === "recent" && scores.freshness < 20)
         rejectionReason = "stale";
       else if (isDuplicate(entry.item, selectedItems))

@@ -172,8 +172,8 @@ h1 {
 }
 
 .phone-shell.sheet-expanded .phone-map-area {
-  flex: 0 0 24%;
-  min-height: 120px;
+  flex: 1 1 auto;
+  min-height: 96px;
 }
 
 .map-loading {
@@ -341,10 +341,9 @@ h1 {
 
 .phone-sheet.is-open {
   display: flex;
-  flex: 1 1 70%;
+  flex: 0 0 auto;
   flex-direction: column;
-  min-height: 0;
-  max-height: none;
+  max-height: min(72%, calc(100% - 96px));
   overflow: hidden;
 }
 
@@ -354,7 +353,7 @@ h1 {
 }
 
 .phone-sheet.is-open .sheet-handle {
-  padding: 6px 12px 2px;
+  padding: 4px 12px 0;
 }
 
 .phone-sheet.is-open .map-stage-bar {
@@ -362,47 +361,137 @@ h1 {
 }
 
 .phone-sheet.is-open .content {
-  flex: 1 1 auto;
+  flex: 0 0 auto;
   min-height: 0;
-  overflow: hidden;
-  padding: 8px 14px 14px;
+  max-height: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: 4px 12px 10px;
+  scrollbar-width: none;
+}
+
+.phone-sheet.is-open .content::-webkit-scrollbar {
+  display: none;
+}
+
+.rider-prefs {
+  display: grid;
+  gap: 10px;
+  margin: 0 0 14px;
+  padding: 0 0 14px;
+  border-bottom: 1px solid #e3dfd3;
+}
+
+.phone-sheet.is-open .rider-prefs {
+  gap: 6px;
+  margin: 0 0 8px;
+  padding: 0 0 8px;
+}
+
+.story-card .now-playing {
+  margin-bottom: 8px;
+}
+
+.rider-prefs-block {
+  display: grid;
+  gap: 6px;
+}
+
+.rider-prefs-label {
+  margin: 0;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.rider-prefs .pill {
+  padding: 6px 10px;
+  color: #3d4a43;
+  border: 1px solid #d8d4c8;
+  background: #fff;
+  font-size: 11px;
+}
+
+.rider-prefs .pill.active {
+  color: #14221c;
+  border-color: transparent;
+  background: var(--lime);
+}
+
+.phone-sheet.is-open .rider-prefs .pill-row {
+  gap: 6px;
+}
+
+.rider-prefs .rider-topics {
+  flex-wrap: nowrap;
+  gap: 3px;
+}
+
+.rider-prefs .rider-topics .pill {
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 5px 2px;
+  font-size: 9px;
+  letter-spacing: -0.01em;
+  text-align: center;
+  white-space: nowrap;
 }
 
 .phone-sheet.is-open .now-playing {
-  margin-bottom: 6px;
+  margin-bottom: 4px;
+  font-size: 10px;
 }
 
 .phone-sheet.is-open .story-card {
-  padding: 14px;
+  padding: 10px 12px;
+  border-radius: 18px;
+}
+
+.phone-sheet.is-open .eyebrow {
+  margin: 0 0 3px;
+  font-size: 10px;
 }
 
 .phone-sheet.is-open h2 {
-  font-size: 18px;
+  font-size: 15px;
+  line-height: 1.2;
 }
 
 .phone-sheet.is-open .story-copy {
   min-height: 0;
   display: -webkit-box;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 3;
+  -webkit-line-clamp: 2;
   overflow: hidden;
-  margin: 6px 0 6px;
-  font-size: 12px;
-  line-height: 1.4;
+  margin: 4px 0;
+  font-size: 11px;
+  line-height: 1.35;
 }
 
 .phone-sheet.is-open .story-meta {
-  margin: 0 0 10px;
+  margin: 0 0 8px;
   font-size: 10px;
 }
 
-.phone-sheet.is-open .demo-audio-note {
-  margin-top: 8px;
+.phone-sheet.is-open .player {
+  gap: 8px;
 }
 
-.phone-sheet.is-collapsed .map-stage-pills {
-  display: none;
+.phone-sheet.is-open .play-button {
+  flex-basis: 40px;
+  width: 40px;
+  height: 40px;
 }
+
+.phone-sheet.is-open .demo-audio-note {
+  margin-top: 4px;
+  font-size: 9px;
+}
+
+/* Stage pills stay visible while walking the demo; the whole bar is omitted
+   in JSX when filtered + sheet open, and returns on Suskleisti. */
 
 .sheet-handle {
   display: flex;
@@ -475,6 +564,7 @@ h1 {
 
 .stage-next {
   flex: 0 0 auto;
+  margin-left: auto;
   padding: 8px 12px;
   color: white;
   border: 0;

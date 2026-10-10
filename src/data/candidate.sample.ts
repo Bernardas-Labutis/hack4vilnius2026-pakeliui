@@ -13,7 +13,11 @@ export type ContentCategory =
   | "history"
   | "events"
   | "transport"
-  | "evergreen";
+  | "evergreen"
+  | "music"
+  | "sports"
+  | "crime"
+  | "science";
 
 export type CandidateItem = {
   id: string;
