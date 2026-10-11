@@ -88,3 +88,7 @@ No environment variables are required for this demo.
 - Add MapLibre + real GTFS geometry for corridor matching.
 - Generate Lithuanian narration and cache audio for jury day.
 - Label sponsored items clearly if B2G licensing adds partners later.
+
+## License
+
+© 2026 Gabriele Čiuladaitė, Mantas Pimpė, and Bernardas Labutis. All rights reserved. Source shared for Hack4Vilnius judging only.
